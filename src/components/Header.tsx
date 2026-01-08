@@ -23,10 +23,11 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled
-          ? 'bg-gray-950/80 backdrop-blur-md border-b border-gray-800 py-3'
+      className={`sticky top-0 z-50 transition-all duration-300 bg-black/100 ${
+        isScrolled
+          ? 'bg-black/100 backdrop-blur-md border-b border-gray-800 py-3'
           : 'bg-transparent border-b border-transparent py-5'
-        }`}
+      }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}

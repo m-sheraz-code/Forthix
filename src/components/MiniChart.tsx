@@ -1,4 +1,4 @@
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, YAxis } from 'recharts';
 
 interface MiniChartProps {
   data: { time: string; value: number }[];
@@ -23,6 +23,7 @@ export default function MiniChart({ data, isPositive }: MiniChartProps) {
             />
           </linearGradient>
         </defs>
+        <YAxis hide domain={['dataMin - 2%', 'dataMax + 2%']} />
         <Area
           type="monotone"
           dataKey="value"

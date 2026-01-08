@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
 import { ArrowRight, TrendingUp, ChevronDown } from 'lucide-react';
 import MarketCard from '../components/MarketCard';
 import IdeaCard from '../components/IdeaCard';
@@ -6,8 +7,26 @@ import NewsCard from '../components/NewsCard';
 import MiniChart from '../components/MiniChart';
 import { majorIndices, ideasItems, newsItems, topStocks, brokers } from '../data/mockData';
 
+const generateVolatileData = (points: number, base: number, volatility: number) => {
+  const data = [];
+  let current = base;
+  for (let i = 0; i < points; i++) {
+    // Random walk with a slight bias towards the base to keep it in range
+    const drift = (base - current) * 0.1;
+    const change = (Math.random() - 0.5) * volatility + drift;
+    current += change;
+    data.push({ time: i.toString(), value: current });
+  }
+  return data;
+};
+
 export default function LandingPage() {
   const spxData = majorIndices[0];
+
+  const spxVolatileData = useMemo(() => generateVolatileData(60, spxData.price, 80), [spxData.price]);
+  const crudeVolatileData = useMemo(() => generateVolatileData(30, 3.81, 0.15), []);
+  const usdVolatileData = useMemo(() => generateVolatileData(30, 100.236, 1.2), []);
+  const yieldVolatileData = useMemo(() => generateVolatileData(30, 4.170, 0.08), []);
 
   return (
     <div className="bg-gray-950">
@@ -60,67 +79,62 @@ export default function LandingPage() {
               <ArrowRight className="h-5 w-5" />
             </h2>
           </div>
-
-          <div className="grid gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-5">
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-                <div className="mb-4 flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-400">{spxData.symbol}</p>
-                    <h3 className="text-xl font-semibold text-white">{spxData.name}</h3>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-white">
-                      {spxData.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className={`text-sm ${spxData.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      +{spxData.change.toFixed(2)} ({spxData.changePercent.toFixed(2)}%)
-                    </p>
-                  </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <div className="mb-4 flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">{spxData.symbol}</p>
+                  <h3 className="text-xl font-semibold text-white">{spxData.name}</h3>
                 </div>
-                <div className="h-48">
-                  <MiniChart data={spxData.chartData} isPositive={spxData.change >= 0} />
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-white">
+                    {spxData.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className={`text-sm ${spxData.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    +{spxData.change.toFixed(2)} ({spxData.changePercent.toFixed(2)}%)
+                  </p>
                 </div>
+              </div>
+              <div className="h-48">
+                <MiniChart data={spxVolatileData} isPositive={spxData.change >= 0} />
               </div>
             </div>
 
-            <div className="lg:col-span-7">
-              <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-                <h3 className="mb-4 text-sm font-semibold text-white">Major Indices</h3>
-                <div className="space-y-3">
-                  {majorIndices.slice(1).map((index) => (
-                    <Link
-                      key={index.symbol}
-                      to={`/indices/${index.symbol}`}
-                      className="flex items-center justify-between rounded-lg border border-gray-800 p-3 transition-colors hover:border-gray-700"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800">
-                          <TrendingUp className="h-5 w-5 text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{index.name}</p>
-                          <p className="text-xs text-gray-400">{index.symbol}</p>
-                        </div>
+            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+              <h3 className="mb-4 text-sm font-semibold text-white">Major Indices</h3>
+              <div className="space-y-3">
+                {majorIndices.slice(1).map((index) => (
+                  <Link
+                    key={index.symbol}
+                    to={`/indices/${index.symbol}`}
+                    className="flex items-center justify-between rounded-lg border border-gray-800 p-3 transition-colors hover:border-gray-700"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800">
+                        <TrendingUp className="h-5 w-5 text-blue-400" />
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-white">
-                          {index.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </p>
-                        <p className={`text-xs ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)} ({index.changePercent.toFixed(2)}%)
-                        </p>
+                      <div>
+                        <p className="text-sm font-medium text-white">{index.name}</p>
+                        <p className="text-xs text-gray-400">{index.symbol}</p>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-                <Link
-                  to="/markets"
-                  className="mt-4 block text-center text-sm text-blue-400 hover:underline"
-                >
-                  See all major markets →
-                </Link>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-white">
+                        {index.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </p>
+                      <p className={`text-xs ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)} ({index.changePercent.toFixed(2)}%)
+                      </p>
+                    </div>
+                  </Link>
+                ))}
               </div>
+              <Link
+                to="/markets"
+                className="mt-4 block text-center text-sm text-blue-400 hover:underline"
+              >
+                See all major markets →
+              </Link>
             </div>
           </div>
 
@@ -132,11 +146,7 @@ export default function LandingPage() {
                 <span>+2.84%</span>
                 <div className="h-12 flex-1">
                   <MiniChart
-                    data={[
-                      { time: '1', value: 3.7 },
-                      { time: '2', value: 3.75 },
-                      { time: '3', value: 3.81 },
-                    ]}
+                    data={crudeVolatileData}
                     isPositive={true}
                   />
                 </div>
@@ -150,11 +160,7 @@ export default function LandingPage() {
                 <span>-0.81%</span>
                 <div className="h-12 flex-1">
                   <MiniChart
-                    data={[
-                      { time: '1', value: 101 },
-                      { time: '2', value: 100.5 },
-                      { time: '3', value: 100.236 },
-                    ]}
+                    data={usdVolatileData}
                     isPositive={false}
                   />
                 </div>
@@ -168,11 +174,7 @@ export default function LandingPage() {
                 <span>+1.93%</span>
                 <div className="h-12 flex-1">
                   <MiniChart
-                    data={[
-                      { time: '1', value: 4.09 },
-                      { time: '2', value: 4.12 },
-                      { time: '3', value: 4.17 },
-                    ]}
+                    data={yieldVolatileData}
                     isPositive={true}
                   />
                 </div>
