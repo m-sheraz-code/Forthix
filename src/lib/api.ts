@@ -16,54 +16,17 @@ interface ApiResponse<T> {
     error: ApiError | null;
 }
 
-// Get stored auth token
-function getAuthToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('forthix_token');
-}
-
-// Set auth token
-export function setAuthToken(token: string | null): void {
-    if (typeof window === 'undefined') return;
-    if (token) {
-        localStorage.setItem('forthix_token', token);
-    } else {
-        localStorage.removeItem('forthix_token');
-    }
-}
-
-// Get refresh token
-function getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('forthix_refresh_token');
-}
-
-// Set refresh token
-export function setRefreshToken(token: string | null): void {
-    if (typeof window === 'undefined') return;
-    if (token) {
-        localStorage.setItem('forthix_refresh_token', token);
-    } else {
-        localStorage.removeItem('forthix_refresh_token');
-    }
-}
-
 // Base fetch wrapper
 async function apiFetch<T>(
     endpoint: string,
     options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
     const url = `${API_BASE}${endpoint}`;
-    const token = getAuthToken();
 
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
         ...(options.headers || {}),
     };
-
-    if (token) {
-        (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-    }
 
     try {
         const response = await fetch(url, {
@@ -93,95 +56,6 @@ async function apiFetch<T>(
             },
         };
     }
-}
-
-// ============================================
-// AUTH API
-// ============================================
-
-export interface User {
-    id: string;
-    email: string;
-    created_at: string;
-    profile?: {
-        username: string;
-        display_name: string;
-        avatar_url: string | null;
-        bio: string | null;
-    };
-    preferences?: {
-        theme: 'light' | 'dark';
-        default_chart_type: string;
-        notifications_enabled: boolean;
-    };
-}
-
-export interface Session {
-    access_token: string;
-    refresh_token: string;
-    expires_at: number;
-}
-
-export async function signup(email: string, password: string, username?: string) {
-    const response = await apiFetch<{ user: User; session: Session | null }>('/auth?action=signup', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, username }),
-    });
-
-    if (response.data?.session) {
-        setAuthToken(response.data.session.access_token);
-        setRefreshToken(response.data.session.refresh_token);
-    }
-
-    return response;
-}
-
-export async function login(email: string, password: string) {
-    const response = await apiFetch<{ user: User; session: Session }>('/auth?action=login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-    });
-
-    if (response.data?.session) {
-        setAuthToken(response.data.session.access_token);
-        setRefreshToken(response.data.session.refresh_token);
-    }
-
-    return response;
-}
-
-export async function logout() {
-    const response = await apiFetch<{ message: string }>('/auth?action=logout', {
-        method: 'POST',
-    });
-
-    setAuthToken(null);
-    setRefreshToken(null);
-
-    return response;
-}
-
-export async function getCurrentUser() {
-    return apiFetch<{ user: User }>('/auth?action=me');
-}
-
-export async function refreshSession() {
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) {
-        return { data: null, error: { error: 'No refresh token' } };
-    }
-
-    const response = await apiFetch<{ session: Session; user: User | null }>('/auth?action=refresh', {
-        method: 'POST',
-        body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-
-    if (response.data?.session) {
-        setAuthToken(response.data.session.access_token);
-        setRefreshToken(response.data.session.refresh_token);
-    }
-
-    return response;
 }
 
 // ============================================
@@ -263,51 +137,6 @@ export async function getChartData(symbol: string, range = '1d') {
         };
     }>(`/charts?symbol=${symbol}&range=${range}`);
 }
-
-// ============================================
-// WATCHLIST API
-// ============================================
-
-export interface Watchlist {
-    id: string;
-    name: string;
-    symbols: string[];
-    quotes?: Quote[];
-    created_at: string;
-    updated_at: string;
-}
-
-export async function getWatchlists(withPrices = false) {
-    return apiFetch<{ watchlists: Watchlist[] }>(
-        `/watchlist${withPrices ? '?withPrices=true' : ''}`
-    );
-}
-
-export async function getWatchlist(id: string) {
-    return apiFetch<{ watchlist: Watchlist }>(`/watchlist?id=${id}`);
-}
-
-export async function createWatchlist(name: string, symbols: string[] = []) {
-    return apiFetch<{ watchlist: Watchlist }>('/watchlist', {
-        method: 'POST',
-        body: JSON.stringify({ name, symbols }),
-    });
-}
-
-export async function updateWatchlist(id: string, data: { name?: string; symbols?: string[] }) {
-    return apiFetch<{ watchlist: Watchlist }>(`/watchlist?id=${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    });
-}
-
-export async function deleteWatchlist(id: string) {
-    return apiFetch<{ message: string }>(`/watchlist?id=${id}`, {
-        method: 'DELETE',
-    });
-}
-
-// ============================================
 // IDEAS API
 // ============================================
 
@@ -372,30 +201,6 @@ export async function commentOnIdea(id: string, content: string) {
     return apiFetch<{ comment: any }>(`/ideas/${id}`, {
         method: 'POST',
         body: JSON.stringify({ action: 'comment', content }),
-    });
-}
-
-// ============================================
-// PREFERENCES API
-// ============================================
-
-export interface UserPreferences {
-    theme: 'light' | 'dark';
-    default_chart_type: string;
-    default_timeframe: string;
-    notifications_enabled: boolean;
-    email_alerts: boolean;
-    watchlist_alerts: boolean;
-}
-
-export async function getPreferences() {
-    return apiFetch<{ preferences: UserPreferences }>('/preferences');
-}
-
-export async function updatePreferences(preferences: Partial<UserPreferences>) {
-    return apiFetch<{ preferences: UserPreferences }>('/preferences', {
-        method: 'PUT',
-        body: JSON.stringify(preferences),
     });
 }
 

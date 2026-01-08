@@ -5,7 +5,6 @@ import MarketDashboard from './pages/MarketDashboard';
 import IndexDetail from './pages/IndexDetail';
 import NewsPage from './pages/NewsPage';
 import IdeasPage from './pages/IdeasPage';
-import AuthPage from './pages/AuthPage';
 
 export const router = createBrowserRouter([
   {
@@ -33,10 +32,6 @@ export const router = createBrowserRouter([
         element: <IdeasPage />,
       },
     ],
-  },
-  {
-    path: '/auth',
-    element: <AuthPage />,
   },
 ]);
 
