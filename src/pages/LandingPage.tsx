@@ -38,7 +38,7 @@ export default function LandingPage() {
 
         <div className="relative mx-auto max-w-7xl px-4 py-20 text-center">
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <h1 className="mb-6 mt-20 text-4xl font-bold tracking-tight text-white md:text-6xl lg:text-8xl leading-[1.1]">
+            <h1 className="mb-6 text-4xl font-bold tracking-tight text-white md:text-4xl lg:text-8xl leading-[1.1]">
               Insight first. <br className="hidden md:block" />
               Then action.
             </h1>
@@ -70,11 +70,6 @@ export default function LandingPage() {
                 </svg>
               </div>
             </div>
-          </div>
-
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 animate-bounce flex flex-col items-center gap-2">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500">Scroll</span>
-            <ChevronDown className="h-5 w-5 text-gray-600" />
           </div>
         </div>
       </section>
