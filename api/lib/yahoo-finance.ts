@@ -4,7 +4,7 @@
  */
 
 import yahooFinance from 'yahoo-finance2';
-import { CACHE_TTL, withCache } from './cache';
+import { CACHE_TTL, withCache } from './cache.js';
 
 // Symbol mappings for major indices
 const INDEX_SYMBOLS: Record<string, string> = {

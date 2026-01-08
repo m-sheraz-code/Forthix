@@ -1,87 +1,79 @@
 import { Link } from 'react-router-dom';
-import { Twitter, Facebook, Linkedin, Youtube } from 'lucide-react';
+import { Twitter, Linkedin, Github } from 'lucide-react';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
+  const footerLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Markets', path: '/markets' },
+    { name: 'News', path: '/news' },
+    { name: 'Ideas', path: '/ideas' },
+  ];
+
+  const socialLinks = [
+    { icon: Twitter, href: '#' },
+    { icon: Github, href: '#' },
+    { icon: Linkedin, href: '#' },
+  ];
+
   return (
-    <footer className="border-t border-gray-800 bg-gray-950 py-16">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5">
-          <div>
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white">
-                <span className="text-sm font-bold text-gray-950">F</span>
+    <footer className="bg-gray-950 border-t border-gray-900 pb-12 pt-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center gap-12 text-center">
+          {/* Logo & Description */}
+          <div className="flex flex-col items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white transition-all group-hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                <span className="text-lg font-bold text-gray-950">F</span>
               </div>
-              <span className="text-sm font-semibold">Forthix</span>
-            </div>
-            <div className="flex gap-3">
-              <a href="#" className="text-gray-400 hover:text-white">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <Youtube className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold">Products</h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li><Link to="/markets" className="hover:text-white">SuperCharts</Link></li>
-              <li><Link to="/markets" className="hover:text-white">Advanced Screener</Link></li>
-              <li><Link to="/markets" className="hover:text-white">Stock Screeners</Link></li>
-              <li><Link to="/markets" className="hover:text-white">Forex Screeners</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold">Company</h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white">About</a></li>
-              <li><a href="#" className="hover:text-white">Features</a></li>
-              <li><a href="#" className="hover:text-white">Pricing</a></li>
-              <li><a href="#" className="hover:text-white">Wall of Love</a></li>
-              <li><a href="#" className="hover:text-white">Partners</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold">Community</h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li><Link to="/ideas" className="hover:text-white">Refer a friend</Link></li>
-              <li><Link to="/ideas" className="hover:text-white">Ideas</Link></li>
-              <li><Link to="/ideas" className="hover:text-white">Moderators</Link></li>
-              <li><Link to="/ideas" className="hover:text-white">Streams</Link></li>
-              <li><a href="#" className="hover:text-white">Chat</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold">For Business</h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white">Widgets</a></li>
-              <li><a href="#" className="hover:text-white">Advertising</a></li>
-              <li><a href="#" className="hover:text-white">Brokerage & Retail Solutions</a></li>
-              <li><a href="#" className="hover:text-white">Charting Libraries</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-12 border-t border-gray-800 pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row">
-            <p className="text-sm text-gray-500">
-              2026-2050 by Forthix Ltd. Data delayed at least 15 minutes.
+              <span className="text-xl font-bold tracking-tight text-white">Forthix</span>
+            </Link>
+            <p className="max-w-md text-sm leading-relaxed text-gray-400">
+              The world's most advanced trading platform and social network for traders and investors.
             </p>
-            <div className="flex gap-6 text-sm text-gray-500">
-              <a href="#" className="hover:text-white">Terms of Use</a>
-              <a href="#" className="hover:text-white">Privacy Policy</a>
-              <a href="#" className="hover:text-white">Cookie Policy</a>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-wrap justify-center gap-x-8 gap-y-4">
+            {footerLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-sm font-medium text-gray-400 transition-colors hover:text-white"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Social Icons */}
+          <div className="flex gap-6">
+            {socialLinks.map((social, index) => {
+              const Icon = social.icon;
+              return (
+                <a
+                  key={index}
+                  href={social.href}
+                  className="group relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-800 transition-all hover:border-white hover:bg-white"
+                >
+                  <Icon className="h-5 w-5 text-gray-400 group-hover:text-gray-950 transition-colors" />
+                </a>
+              );
+            })}
+          </div>
+
+          {/* Copyright & Legal */}
+          <div className="flex flex-col items-center gap-6 pt-8 border-t border-gray-900 w-full">
+            <div className="flex flex-wrap justify-center gap-6 text-xs font-medium text-gray-500 uppercase tracking-widest">
+              <a href="#" className="hover:text-gray-300 transition-colors">Terms</a>
+              <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
+              <a href="#" className="hover:text-gray-300 transition-colors">Cookies</a>
+              <a href="#" className="hover:text-gray-300 transition-colors">Support</a>
             </div>
+            <p className="text-xs text-gray-600">
+              © {currentYear} Forthix Ltd. Data may be delayed. Market analysis provided for educational purposes only.
+            </p>
           </div>
         </div>
       </div>

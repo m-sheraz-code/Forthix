@@ -23,15 +23,29 @@ export default function LandingPage() {
           <p className="mb-8 text-lg text-gray-300">
             The best trades require research, then commitment.
           </p>
-          <Link
-            to="/markets"
-            className="inline-block rounded-lg bg-white px-8 py-3 font-medium text-gray-950 transition-colors hover:bg-gray-100"
-          >
-            Get started for free
-          </Link>
-          <p className="mt-4 text-sm text-gray-400">
-            Already on trading? Get trading data tracking
-          </p>
+          <div className="mx-auto max-w-2xl relative group">
+            <input
+              type="text"
+              placeholder="Search markets, stocks, or news..."
+              className="w-full rounded-xl bg-gray-900/50 border border-white py-4 px-6 pl-12 text-white placeholder-gray-500 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </div>
+          </div>
           <div className="mt-12 flex justify-center">
             <ChevronDown className="h-6 w-6 animate-bounce text-gray-400" />
           </div>
@@ -362,7 +376,7 @@ export default function LandingPage() {
             to="/markets"
             className="inline-block rounded-lg bg-white px-8 py-3 font-medium text-gray-950 transition-colors hover:bg-gray-100"
           >
-            Get started for free
+            Get started
           </Link>
         </div>
       </section>

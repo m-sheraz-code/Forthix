@@ -123,7 +123,7 @@ export interface Session {
 }
 
 export async function signup(email: string, password: string, username?: string) {
-    const response = await apiFetch<{ user: User; session: Session | null }>('/auth/signup', {
+    const response = await apiFetch<{ user: User; session: Session | null }>('/auth?action=signup', {
         method: 'POST',
         body: JSON.stringify({ email, password, username }),
     });
@@ -137,7 +137,7 @@ export async function signup(email: string, password: string, username?: string)
 }
 
 export async function login(email: string, password: string) {
-    const response = await apiFetch<{ user: User; session: Session }>('/auth/login', {
+    const response = await apiFetch<{ user: User; session: Session }>('/auth?action=login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
     });
@@ -151,7 +151,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout() {
-    const response = await apiFetch<{ message: string }>('/auth/logout', {
+    const response = await apiFetch<{ message: string }>('/auth?action=logout', {
         method: 'POST',
     });
 
@@ -162,7 +162,7 @@ export async function logout() {
 }
 
 export async function getCurrentUser() {
-    return apiFetch<{ user: User }>('/auth/me');
+    return apiFetch<{ user: User }>('/auth?action=me');
 }
 
 export async function refreshSession() {
@@ -171,7 +171,7 @@ export async function refreshSession() {
         return { data: null, error: { error: 'No refresh token' } };
     }
 
-    const response = await apiFetch<{ session: Session; user: User | null }>('/auth/refresh', {
+    const response = await apiFetch<{ session: Session; user: User | null }>('/auth?action=refresh', {
         method: 'POST',
         body: JSON.stringify({ refresh_token: refreshToken }),
     });
@@ -261,7 +261,7 @@ export async function getChartData(symbol: string, range = '1d') {
             change: number;
             changePercent: number;
         };
-    }>(`/charts/${symbol}?range=${range}`);
+    }>(`/charts?symbol=${symbol}&range=${range}`);
 }
 
 // ============================================
@@ -284,7 +284,7 @@ export async function getWatchlists(withPrices = false) {
 }
 
 export async function getWatchlist(id: string) {
-    return apiFetch<{ watchlist: Watchlist }>(`/watchlist/${id}`);
+    return apiFetch<{ watchlist: Watchlist }>(`/watchlist?id=${id}`);
 }
 
 export async function createWatchlist(name: string, symbols: string[] = []) {
@@ -295,14 +295,14 @@ export async function createWatchlist(name: string, symbols: string[] = []) {
 }
 
 export async function updateWatchlist(id: string, data: { name?: string; symbols?: string[] }) {
-    return apiFetch<{ watchlist: Watchlist }>(`/watchlist/${id}`, {
+    return apiFetch<{ watchlist: Watchlist }>(`/watchlist?id=${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
     });
 }
 
 export async function deleteWatchlist(id: string) {
-    return apiFetch<{ message: string }>(`/watchlist/${id}`, {
+    return apiFetch<{ message: string }>(`/watchlist?id=${id}`, {
         method: 'DELETE',
     });
 }
@@ -412,11 +412,11 @@ export interface SavedChart {
 }
 
 export async function getSavedCharts() {
-    return apiFetch<{ charts: SavedChart[] }>('/charts/saved');
+    return apiFetch<{ charts: SavedChart[] }>('/charts?saved=true');
 }
 
 export async function saveChart(symbol: string, name?: string, config?: Record<string, unknown>) {
-    return apiFetch<{ chart: SavedChart }>('/charts/saved', {
+    return apiFetch<{ chart: SavedChart }>('/charts?saved=true', {
         method: 'POST',
         body: JSON.stringify({ symbol, name, config }),
     });

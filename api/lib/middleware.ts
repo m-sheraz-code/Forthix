@@ -3,7 +3,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyAuthToken } from './supabase';
+import { verifyAuthToken } from './supabase.js';
 
 export interface AuthenticatedRequest extends VercelRequest {
     user?: {

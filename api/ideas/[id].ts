@@ -1,5 +1,5 @@
 import type { VercelResponse } from '@vercel/node';
-import { supabase, createAuthenticatedClient } from '../lib/supabase';
+import { supabase, createAuthenticatedClient } from '../lib/supabase.js';
 import {
     withOptionalAuth,
     AuthenticatedRequest,
@@ -7,7 +7,7 @@ import {
     setCorsHeaders,
     errorResponse,
     validateUUID,
-} from '../lib/middleware';
+} from '../lib/middleware.js';
 
 async function handler(req: AuthenticatedRequest, res: VercelResponse) {
     // Handle CORS preflight
