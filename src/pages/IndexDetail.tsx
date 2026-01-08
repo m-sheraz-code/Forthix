@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { TrendingUp, Maximize2 } from 'lucide-react';
+import { TrendingUp, Maximize2, ChevronDown } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
@@ -9,6 +9,7 @@ import { sseCompositeData, ideasItems, newsItems } from '../data/mockData';
 export default function IndexDetail() {
   const { symbol } = useParams();
   const [timeRange, setTimeRange] = useState('1M');
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const timeRanges = ['1 day', '5 days', '1 month', '6 months', 'YTD', '1 year', '5 years', 'All time'];
   const timeRangeMap: Record<string, string> = {
@@ -274,8 +275,8 @@ export default function IndexDetail() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-red-400">Strong buy</span>
+                  <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
+                    <span className="text-sm font-bold leading-tight text-red-500">Strong Sell</span>
                   </div>
                 </div>
               </div>
@@ -298,7 +299,7 @@ export default function IndexDetail() {
                       cx="50"
                       cy="50"
                       r="40"
-                      stroke="#3b82f6"
+                      stroke="#ef4444"
                       strokeWidth="8"
                       fill="none"
                       strokeDasharray="188.5"
@@ -307,7 +308,7 @@ export default function IndexDetail() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-blue-400">Strong buy</span>
+                    <span className="text-lg font-bold text-red-400">Sell</span>
                   </div>
                 </div>
               </div>
@@ -319,19 +320,44 @@ export default function IndexDetail() {
           <h3 className="mb-4 text-lg font-semibold text-white">Frequently Asked Questions</h3>
           <div className="space-y-4">
             {[
-              'What is SSE Composite Index value today?',
-              'What is SSE Composite Index highest value ever?',
-              'What is SSE Composite Index lowest value ever?',
-              'What are the largest SSE Composite Index companies?',
-              'How to invest in SSE Composite Index?',
-            ].map((question, index) => (
-              <button
-                key={index}
-                className="flex w-full items-center justify-between rounded-lg border border-gray-800 p-4 text-left text-sm text-white hover:border-gray-700"
-              >
-                <span>{question}</span>
-                <span className="text-gray-400">+</span>
-              </button>
+              {
+                q: `What is SSE Composite Index value today?`,
+                a: `The SSE Composite Index is currently trading at ${data.price.toLocaleString('en-US', { minimumFractionDigits: 4 })}. The market is showing a ${data.change >= 0 ? 'positive' : 'negative'} trend with a ${data.changePercent.toFixed(2)}% change today.`
+              },
+              {
+                q: `What is SSE Composite Index highest value ever?`,
+                a: `The SSE Composite Index reached its historical all-time high of 6,124.04 points on October 16, 2007, during a massive bull run in the Chinese markets.`
+              },
+              {
+                q: `What is SSE Composite Index lowest value ever?`,
+                a: `Since its inception in 1990, the index's all-time low was approximately 95.79 points, recorded on December 19, 1990.`
+              },
+              {
+                q: `What are the largest SSE Composite Index companies?`,
+                a: `The index is weighted by market capitalization and includes giants like Kweichow Moutai, ICBC (Industrial and Commercial Bank of China), PetroChina, and Agricultural Bank of China.`
+              },
+              {
+                q: `How to invest in SSE Composite Index?`,
+                a: `Investors can gain exposure through index-tracking ETFs, mutual funds, or by trading index futures. Many international brokers offer access to Chinese A-shares through Stock Connect programs.`
+              }
+            ].map((faq, index) => (
+              <div key={index} className="rounded-lg border border-gray-800 bg-gray-900 overflow-hidden transition-all hover:border-gray-700">
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="flex w-full items-center justify-between p-4 text-left"
+                >
+                  <span className="text-sm font-medium text-white">{faq.q}</span>
+                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${openFaq === index ? 'rotate-180' : ''}`} />
+                </button>
+                <div
+                  className={`px-4 pb-4 text-sm text-gray-400 transition-all duration-300 ${openFaq === index ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                    } border-t border-gray-800/50 mt-[-1px]`}
+                >
+                  <div className="pt-4">
+                    {faq.a}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>

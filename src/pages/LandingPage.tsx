@@ -30,43 +30,51 @@ export default function LandingPage() {
 
   return (
     <div className="bg-brand-dark">
-      <section className="relative overflow-hidden border-b border-gray-800">
-        <div className="absolute inset-0 bg-gradient-to-b from-red-950/20 to-transparent" />
+      <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden border-b border-white/5">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-500/10 via-brand-dark to-brand-dark" />
         <div className="absolute inset-0 opacity-20">
           <div className="h-full w-full bg-[url('https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg')] bg-cover bg-center" />
         </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-32 text-center">
-          <h1 className="mb-4 text-5xl font-bold text-white md:text-6xl lg:text-7xl">
-            Insight first / Then action.
-          </h1>
-          <p className="mb-8 text-lg text-gray-300">
-            The best trades require research, then commitment.
-          </p>
-          <div className="mx-auto max-w-2xl relative group">
-            <input
-              type="text"
-              placeholder="Search markets, stocks, or news..."
-              className="w-full rounded-xl bg-gray-900/50 border border-white py-4 px-6 pl-12 text-white placeholder-gray-500 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
-            />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-20 text-center">
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <h1 className="mb-6 mt-20 text-4xl font-bold tracking-tight text-white md:text-6xl lg:text-8xl leading-[1.1]">
+              Insight first. <br className="hidden md:block" />
+              Then action.
+            </h1>
+            <p className="mx-auto mb-10 max-w-2xl text-base text-gray-400 md:text-xl md:leading-relaxed">
+              The world's most advanced trading platform and social network <br className="hidden md:block" />
+              for traders and investors.
+            </p>
+
+            <div className="mx-auto max-w-xl relative group px-2">
+              <input
+                type="text"
+                placeholder="Search markets, stocks, or news..."
+                className="w-full rounded-2xl bg-white/5 border border-white/10 py-3.5 px-6 pl-14 text-white placeholder-gray-500 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all shadow-2xl"
+              />
+              <div className="absolute left-7 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-white transition-colors">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </div>
             </div>
           </div>
-          <div className="mt-12 flex justify-center">
-            <ChevronDown className="h-6 w-6 animate-bounce text-gray-400" />
+
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 animate-bounce flex flex-col items-center gap-2">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500">Scroll</span>
+            <ChevronDown className="h-5 w-5 text-gray-600" />
           </div>
         </div>
       </section>
