@@ -18,14 +18,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gray-950 border-t border-gray-900 pb-12 pt-20">
+    <footer className="bg-brand-dark border-t border-gray-900 pb-12 pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-12 text-center">
           {/* Logo & Description */}
           <div className="flex flex-col items-center gap-4">
             <Link to="/" className="flex items-center gap-2 group">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white transition-all group-hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                <span className="text-lg font-bold text-gray-950">F</span>
+                <span className="text-lg font-bold text-brand-dark">F</span>
               </div>
               <span className="text-xl font-bold tracking-tight text-white">Forthix</span>
             </Link>

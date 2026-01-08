@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, Maximize2 } from 'lucide-react';
+import { TrendingUp, Maximize2 } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
@@ -26,8 +26,8 @@ export default function IndexDetail() {
   const isPositive = data.change >= 0;
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <div className="border-b border-gray-800 bg-gray-950 py-4">
+    <div className="min-h-screen bg-brand-dark">
+      <div className="border-b border-gray-800 bg-brand-dark py-4">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-gray-400">
             <Link to="/markets" className="hover:text-white">
@@ -102,11 +102,10 @@ export default function IndexDetail() {
                   <button
                     key={range}
                     onClick={() => setTimeRange(timeRangeMap[range])}
-                    className={`rounded px-3 py-1.5 text-xs font-medium ${
-                      timeRange === timeRangeMap[range]
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`rounded px-3 py-1.5 text-xs font-medium ${timeRange === timeRangeMap[range]
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     {range}
                   </button>

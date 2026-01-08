@@ -7,8 +7,8 @@ export default function MarketDashboard() {
   const [activeTab, setActiveTab] = useState('indices');
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <div className="border-b border-gray-800 bg-gray-950 py-8">
+    <div className="min-h-screen bg-brand-dark">
+      <div className="border-b border-gray-800 bg-brand-dark py-8">
         <div className="mx-auto max-w-7xl px-4">
           <h1 className="mb-2 text-4xl font-bold text-white">Markets</h1>
           <p className="text-gray-400">
@@ -21,51 +21,46 @@ export default function MarketDashboard() {
         <div className="mb-6 flex gap-4 border-b border-gray-800">
           <button
             onClick={() => setActiveTab('indices')}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === 'indices'
+            className={`pb-3 text-sm font-medium ${activeTab === 'indices'
                 ? 'border-b-2 border-blue-500 text-white'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
             Indices
           </button>
           <button
             onClick={() => setActiveTab('stocks')}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === 'stocks'
+            className={`pb-3 text-sm font-medium ${activeTab === 'stocks'
                 ? 'border-b-2 border-blue-500 text-white'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
             Stocks
           </button>
           <button
             onClick={() => setActiveTab('crypto')}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === 'crypto'
+            className={`pb-3 text-sm font-medium ${activeTab === 'crypto'
                 ? 'border-b-2 border-blue-500 text-white'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
             Crypto
           </button>
           <button
             onClick={() => setActiveTab('forex')}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === 'forex'
+            className={`pb-3 text-sm font-medium ${activeTab === 'forex'
                 ? 'border-b-2 border-blue-500 text-white'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
             Forex
           </button>
           <button
             onClick={() => setActiveTab('commodities')}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === 'commodities'
+            className={`pb-3 text-sm font-medium ${activeTab === 'commodities'
                 ? 'border-b-2 border-blue-500 text-white'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
             Commodities
           </button>

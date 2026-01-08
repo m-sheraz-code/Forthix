@@ -29,7 +29,7 @@ export default function LandingPage() {
   const yieldVolatileData = useMemo(() => generateVolatileData(30, 4.170, 0.08), []);
 
   return (
-    <div className="bg-gray-950">
+    <div className="bg-brand-dark">
       <section className="relative overflow-hidden border-b border-gray-800">
         <div className="absolute inset-0 bg-gradient-to-b from-red-950/20 to-transparent" />
         <div className="absolute inset-0 opacity-20">
@@ -71,7 +71,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-b border-gray-800 bg-gray-950 py-12">
+      <section className="border-b border-gray-800 bg-brand-dark py-12">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-2xl font-semibold text-white">
@@ -366,7 +366,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-gradient-to-b from-gray-950 to-gray-900 py-24 text-center">
+      <section className="bg-gradient-to-b from-brand-dark to-gray-900 py-24 text-center">
         <div className="mx-auto max-w-4xl px-4">
           <h2 className="mb-4 text-4xl font-bold text-white md:text-5xl">
             INSIGHT FIRST / THEN ACTION.
