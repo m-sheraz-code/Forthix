@@ -5,6 +5,10 @@ import MarketDashboard from './pages/MarketDashboard';
 import IndexDetail from './pages/IndexDetail';
 import NewsPage from './pages/NewsPage';
 import IdeasPage from './pages/IdeasPage';
+import IdeaDetail from './pages/IdeaDetail';
+import NewsDetail from './pages/NewsDetail';
+import SearchResults from './pages/SearchResults';
+import ChartEditor from './pages/ChartEditor';
 
 export const router = createBrowserRouter([
   {
@@ -24,12 +28,32 @@ export const router = createBrowserRouter([
         element: <IndexDetail />,
       },
       {
+        path: 'stocks/:symbol',
+        element: <IndexDetail />,
+      },
+      {
+        path: 'chart/:symbol',
+        element: <ChartEditor />,
+      },
+      {
         path: 'news',
         element: <NewsPage />,
       },
       {
+        path: 'news/:id',
+        element: <NewsDetail />,
+      },
+      {
         path: 'ideas',
         element: <IdeasPage />,
+      },
+      {
+        path: 'ideas/:id',
+        element: <IdeaDetail />,
+      },
+      {
+        path: 'search',
+        element: <SearchResults />,
       },
     ],
   },

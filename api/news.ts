@@ -1,53 +1,48 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getMarketNews } from './lib/yahoo-finance.js';
+import { handleOptions, setCorsHeaders, errorResponse } from './lib/middleware.js';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (handleOptions(req, res)) return;
+  setCorsHeaders(res);
+
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return errorResponse(res, 405, 'Method not allowed');
   }
 
   try {
     const { filter = 'latest' } = req.query;
 
-    const newsItems = [
-      {
-        id: '1',
-        title: 'DJ: Dow Jones Closes 49,006 for New Record',
-        source: 'DJ News',
-        time: '24 hours ago',
-        category: 'Trading Economics',
-      },
-      {
-        id: '2',
-        title: 'NASDAQ: Futures Move to Extended Sessions',
-        source: 'NASDAQ',
-        time: '8 hours ago',
-        category: 'Trading Economics',
-      },
-      {
-        id: '3',
-        title: 'BAL: Nasdaq Futures Up 0.5% as Markets Embrace Tech Stocks Once Again',
-        source: 'BAL News',
-        time: '1 day ago',
-        category: 'Trading Economics',
-      },
-      {
-        id: '4',
-        title: 'NASDAQ: Bitcoin\'s New Streak is First Trader of 2026. What\'s Gonna be in This Year?',
-        source: 'NASDAQ',
-        time: '2 days ago',
-        category: 'Trading Economics',
-      },
-      {
-        id: '5',
-        title: 'XAU/USD: Gold Prices Soar $242 as in Bullish S&B in Traders Scramble to Buy the Dip',
-        source: 'Keep reading',
-        time: '3 days ago',
-        category: 'Keep reading',
-      },
-    ];
+    // Use the centralized helper which also handles caching
+    const newsResult = await getMarketNews(filter === 'latest' ? 'market news' : String(filter));
 
-    res.status(200).json({ news: newsItems, filter });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    // Format times for display (time is returned as Unix timestamp from yahoo-finance lib)
+    const formattedNews = newsResult.map(item => ({
+      ...item,
+      time: formatTimeAgo(item.time)
+    }));
+
+    res.status(200).json({ news: formattedNews, filter });
+  } catch (error: any) {
+    console.error('News fetch error:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
   }
+}
+
+function formatTimeAgo(publishTime: number | string): string {
+  if (!publishTime) return 'recently';
+
+  const date = typeof publishTime === 'number' ? new Date(publishTime * 1000) : new Date(publishTime);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
 }

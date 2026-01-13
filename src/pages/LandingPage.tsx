@@ -1,32 +1,51 @@
-import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
-import { ArrowRight, TrendingUp, ChevronDown } from 'lucide-react';
-import MarketCard from '../components/MarketCard';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, TrendingUp, ArrowRight, Loader2 } from 'lucide-react';
+import MiniChart from '../components/MiniChart';
+import { brokers } from '../data/mockData';
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
-import MiniChart from '../components/MiniChart';
-import { majorIndices, ideasItems, newsItems, topStocks, brokers } from '../data/mockData';
+import { getMarketSummary, MarketSummary, getIdeas, getNews, Idea } from '../lib/api';
 
-const generateVolatileData = (points: number, base: number, volatility: number) => {
-  const data = [];
-  let current = base;
-  for (let i = 0; i < points; i++) {
-    // Random walk with a slight bias towards the base to keep it in range
-    const drift = (base - current) * 0.1;
-    const change = (Math.random() - 0.5) * volatility + drift;
-    current += change;
-    data.push({ time: i.toString(), value: current });
-  }
-  return data;
-};
+interface NewsItem {
+  id: string;
+  title: string;
+  source: string;
+  time: string;
+  category: string;
+}
 
 export default function LandingPage() {
-  const spxData = majorIndices[0];
+  const navigate = useNavigate();
+  const [marketData, setMarketData] = useState<MarketSummary | null>(null);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const spxVolatileData = useMemo(() => generateVolatileData(60, spxData.price, 80), [spxData.price]);
-  const crudeVolatileData = useMemo(() => generateVolatileData(30, 3.81, 0.15), []);
-  const usdVolatileData = useMemo(() => generateVolatileData(30, 100.236, 1.2), []);
-  const yieldVolatileData = useMemo(() => generateVolatileData(30, 4.170, 0.08), []);
+  useEffect(() => {
+    async function loadData() {
+      const [marketResult, ideasResult, newsResult] = await Promise.all([
+        getMarketSummary(),
+        getIdeas('editors'),
+        getNews('latest')
+      ]);
+
+      if (marketResult.data) {
+        setMarketData(marketResult.data);
+      }
+      if (ideasResult.data) {
+        setIdeas(ideasResult.data.ideas);
+      }
+      if (newsResult.data) {
+        setNews(newsResult.data.news);
+      }
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
+  const featuredIndex = marketData?.indices[0] || null;
 
   return (
     <div className="bg-brand-dark">
@@ -48,27 +67,26 @@ export default function LandingPage() {
             </p>
 
             <div className="mx-auto max-w-xl relative group px-2">
-              <input
-                type="text"
-                placeholder="Search markets, stocks, or news..."
-                className="w-full rounded-2xl bg-white/5 border border-white/10 py-3.5 px-6 pl-14 text-white placeholder-gray-500 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all shadow-2xl"
-              />
-              <div className="absolute left-7 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-white transition-colors">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                  }
+                }}
+                className="relative"
+              >
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search markets, stocks, or news..."
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 py-3.5 px-6 pl-14 text-white placeholder-gray-500 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all shadow-2xl"
+                />
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500">
+                  <Search className="h-5 w-5 group-focus-within:text-white transition-colors" />
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -82,108 +100,139 @@ export default function LandingPage() {
               <ArrowRight className="h-5 w-5" />
             </h2>
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-              <div className="mb-4 flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">{spxData.symbol}</p>
-                  <h3 className="text-xl font-semibold text-white">{spxData.name}</h3>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-white">
-                    {spxData.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className={`text-sm ${spxData.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    +{spxData.change.toFixed(2)} ({spxData.changePercent.toFixed(2)}%)
-                  </p>
-                </div>
-              </div>
-              <div className="h-48">
-                <MiniChart data={spxVolatileData} isPositive={spxData.change >= 0} />
-              </div>
-            </div>
 
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-              <h3 className="mb-4 text-sm font-semibold text-white">Major Indices</h3>
-              <div className="space-y-3">
-                {majorIndices.slice(1).map((index) => (
-                  <Link
-                    key={index.symbol}
-                    to={`/indices/${index.symbol}`}
-                    className="flex items-center justify-between rounded-lg border border-gray-800 p-3 transition-colors hover:border-gray-700"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800">
-                        <TrendingUp className="h-5 w-5 text-blue-400" />
-                      </div>
+          {isLoading ? (
+            <div className="flex h-[400px] items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* Featured Index Card */}
+                {featuredIndex && (
+                  <div className="rounded-lg border border-gray-800 bg-gray-900 p-6 overflow-hidden relative">
+                    <div className="mb-4 flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-white">{index.name}</p>
-                        <p className="text-xs text-gray-400">{index.symbol}</p>
+                        <p className="text-sm text-gray-400">{featuredIndex.symbol}</p>
+                        <h3 className="text-xl font-semibold text-white">{featuredIndex.name}</h3>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-white">
+                          {featuredIndex.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className={`text-sm ${featuredIndex.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {featuredIndex.change >= 0 ? '+' : ''}{featuredIndex.change.toFixed(2)} ({featuredIndex.changePercent.toFixed(2)}%)
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-white">
-                        {index.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <div className="h-48 mt-8">
+                      <MiniChart data={featuredIndex.chartData || []} isPositive={featuredIndex.change >= 0} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Major Indices List */}
+                <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
+                  <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Major Indices</h3>
+                  <div className="space-y-3">
+                    {(marketData?.indices || []).slice(1, 5).map((index) => (
+                      <Link
+                        key={index.symbol}
+                        to={`/indices/${index.symbol}`}
+                        className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-white/10"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                            <TrendingUp className="h-5 w-5 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white uppercase">{index.symbol}</p>
+                            <p className="text-xs text-gray-400 line-clamp-1">{index.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-white">
+                            {index.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </p>
+                          <p className={`text-xs font-medium ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {index.change >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  <Link
+                    to="/markets"
+                    className="mt-6 block text-center text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    See all major markets →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Market Stats Grid */}
+              <div className="mt-6 grid gap-6 md:grid-cols-3">
+                <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">Market Breadth</h4>
+                  <p className="text-2xl font-bold text-white">Mixed</p>
+                  <div className="mt-4 flex h-1.5 w-full rounded-full bg-gray-800 overflow-hidden">
+                    <div className="bg-green-500 w-[45%]" />
+                    <div className="bg-gray-700 w-[10%]" />
+                    <div className="bg-red-500 w-[45%]" />
+                  </div>
+                  <div className="mt-2 flex justify-between text-[10px] text-gray-500 font-bold">
+                    <span>ADVANCE: 1,240</span>
+                    <span>DECLINE: 1,310</span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">Dollar Index (DXY)</h4>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {marketData?.summary.dollarIndex.toFixed(3) || '106.820'}
                       </p>
-                      <p className={`text-xs ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)} ({index.changePercent.toFixed(2)}%)
+                      <p className={`text-sm font-bold ${marketData?.summary.dollarIndexChange! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {marketData?.summary.dollarIndexChange! >= 0 ? '+' : ''}
+                        {marketData?.summary.dollarIndexChange?.toFixed(2) || '0.12'}%
                       </p>
                     </div>
-                  </Link>
-                ))}
-              </div>
-              <Link
-                to="/markets"
-                className="mt-4 block text-center text-sm text-blue-400 hover:underline"
-              >
-                See all major markets →
-              </Link>
-            </div>
-          </div>
+                    <div className="h-10 w-24">
+                      {/* Mini visual indicator */}
+                      <div className="flex h-full items-end gap-1">
+                        {[40, 60, 30, 80, 50, 90, 70].map((h, i) => (
+                          <div key={i} className="flex-1 bg-blue-500/20 rounded-t-sm" style={{ height: `${h}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-4">
-              <h4 className="mb-3 text-sm font-semibold text-white">Crude market cap</h4>
-              <p className="text-2xl font-bold text-white">3.81T</p>
-              <div className="mt-2 flex items-center gap-2 text-sm text-green-500">
-                <span>+2.84%</span>
-                <div className="h-12 flex-1">
-                  <MiniChart
-                    data={crudeVolatileData}
-                    isPositive={true}
-                  />
+                <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">10Y Treasury Yield</h4>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {marketData?.summary.us10Year.toFixed(3) || '4.417'}
+                      </p>
+                      <p className={`text-sm font-bold ${marketData?.summary.us10YearChange! >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {marketData?.summary.us10YearChange! >= 0 ? '+' : ''}
+                        {marketData?.summary.us10YearChange?.toFixed(2) || '0.05'}%
+                      </p>
+                    </div>
+                    <div className="h-10 w-24">
+                      <div className="flex h-full items-end gap-1">
+                        {[30, 50, 40, 20, 60, 40, 50].map((h, i) => (
+                          <div key={i} className="flex-1 bg-orange-500/20 rounded-t-sm" style={{ height: `${h}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-4">
-              <h4 className="mb-3 text-sm font-semibold text-white">US Dollar Index</h4>
-              <p className="text-2xl font-bold text-white">100.236</p>
-              <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
-                <span>-0.81%</span>
-                <div className="h-12 flex-1">
-                  <MiniChart
-                    data={usdVolatileData}
-                    isPositive={false}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-4">
-              <h4 className="mb-3 text-sm font-semibold text-white">US 10-year yield</h4>
-              <p className="text-2xl font-bold text-white">4.170</p>
-              <div className="mt-2 flex items-center gap-2 text-sm text-green-500">
-                <span>+1.93%</span>
-                <div className="h-12 flex-1">
-                  <MiniChart
-                    data={yieldVolatileData}
-                    isPositive={true}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -204,8 +253,16 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {ideasItems.slice(0, 3).map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
+            {ideas.slice(0, 3).map((idea) => (
+              <IdeaCard key={idea.id} idea={{
+                id: idea.id,
+                title: idea.title,
+                author: idea.author,
+                time: idea.time,
+                image: idea.image || 'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg',
+                likes: idea.likes,
+                comments: idea.commentCount || 0
+              }} />
             ))}
           </div>
         </div>
@@ -220,8 +277,8 @@ export default function LandingPage() {
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {newsItems.slice(0, 6).map((news) => (
-              <NewsCard key={news.id} news={news} />
+            {news.slice(0, 6).map((newsItem) => (
+              <NewsCard key={newsItem.id} news={newsItem} />
             ))}
           </div>
           <div className="mt-6 text-center">
@@ -245,129 +302,84 @@ export default function LandingPage() {
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             <div>
-              <h3 className="mb-4 text-sm font-semibold text-white">Highest volume stocks</h3>
+              <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Most Active</h3>
               <div className="space-y-3">
-                {topStocks.highestVolume.map((stock) => (
-                  <div
+                {(marketData?.movers.mostActive || []).map((stock) => (
+                  <Link
                     key={stock.symbol}
-                    className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-900 p-3"
+                    to={`/indices/${stock.symbol}`}
+                    className="flex items-center justify-between rounded-xl border border-white/5 bg-gray-900/50 p-3.5 transition-all hover:bg-white/5 hover:border-white/10"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{stock.symbol}</p>
-                      <p className="text-xs text-gray-400">{stock.name}</p>
+                      <p className="text-sm font-bold text-white">{stock.symbol}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-white">${stock.price}</p>
-                      <p className={`text-xs ${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        +{stock.changePercent.toFixed(2)}%
+                      <p className="text-sm font-bold text-white">${stock.price.toFixed(2)}</p>
+                      <p className={`text-xs font-bold ${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
-              <Link
-                to="/markets"
-                className="mt-4 block text-center text-sm text-blue-400 hover:underline"
-              >
-                See all trends traded stocks →
-              </Link>
             </div>
 
             <div>
-              <h3 className="mb-4 text-sm font-semibold text-white">Stock gainers</h3>
+              <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Top Gainers</h3>
               <div className="space-y-3">
-                {topStocks.gainers.map((stock) => (
-                  <div
+                {(marketData?.movers.gainers || []).map((stock) => (
+                  <Link
                     key={stock.symbol}
-                    className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-900 p-3"
+                    to={`/indices/${stock.symbol}`}
+                    className="flex items-center justify-between rounded-xl border border-white/5 bg-gray-900/50 p-3.5 transition-all hover:bg-white/5 hover:border-white/10"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{stock.symbol}</p>
-                      <p className="text-xs text-gray-400">{stock.name}</p>
+                      <p className="text-sm font-bold text-white">{stock.symbol}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-white">${stock.price}</p>
-                      <p className="text-xs text-green-500">+{stock.changePercent.toFixed(2)}%</p>
+                      <p className="text-sm font-bold text-white">${stock.price.toFixed(2)}</p>
+                      <p className="text-xs font-bold text-green-500">+{stock.changePercent.toFixed(2)}%</p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
-              <Link
-                to="/markets"
-                className="mt-4 block text-center text-sm text-blue-400 hover:underline"
-              >
-                See all stocks with largest gains →
-              </Link>
             </div>
 
             <div>
-              <h3 className="mb-4 text-sm font-semibold text-white">Stock losers</h3>
+              <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Top Losers</h3>
               <div className="space-y-3">
-                {topStocks.losers.map((stock) => (
-                  <div
+                {(marketData?.movers.losers || []).map((stock) => (
+                  <Link
                     key={stock.symbol}
-                    className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-900 p-3"
+                    to={`/indices/${stock.symbol}`}
+                    className="flex items-center justify-between rounded-xl border border-white/5 bg-gray-900/50 p-3.5 transition-all hover:bg-white/5 hover:border-white/10"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{stock.symbol}</p>
-                      <p className="text-xs text-gray-400">{stock.name}</p>
+                      <p className="text-sm font-bold text-white">{stock.symbol}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-white">${stock.price}</p>
-                      <p className="text-xs text-red-500">{stock.changePercent.toFixed(2)}%</p>
+                      <p className="text-sm font-bold text-white">${stock.price.toFixed(2)}</p>
+                      <p className="text-xs font-bold text-red-500">{stock.changePercent.toFixed(2)}%</p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
-              <Link
-                to="/markets"
-                className="mt-4 block text-center text-sm text-blue-400 hover:underline"
-              >
-                See all stocks and year the firm →
-              </Link>
             </div>
+          </div>
+          <div className="mt-8 text-center">
+            <Link
+              to="/markets"
+              className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              See all trending stocks →
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-gray-800 py-12">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="mb-6">
-            <h2 className="mb-2 flex items-center gap-2 text-2xl font-semibold text-white">
-              Trading and brokers
-              <ArrowRight className="h-5 w-5" />
-            </h2>
-            <p className="text-sm text-gray-400">
-              Trade directly on NASDAQ through our supported, fully-verified, and user-reviewed brokers.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {brokers.map((broker) => (
-              <div
-                key={broker.id}
-                className="rounded-lg border border-gray-800 bg-gray-900 p-6"
-              >
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-800">
-                    <span className="text-sm font-bold text-white">{broker.name[0]}</span>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">{broker.name}</h3>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
-                      <span>⭐ {broker.rating}</span>
-                      <span>•</span>
-                      <span>{broker.reviews.toLocaleString()} reviews</span>
-                    </div>
-                  </div>
-                </div>
-                <button className="w-full rounded-lg bg-white py-2 text-sm font-medium text-gray-950 hover:bg-gray-100">
-                  Open account
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section className="bg-gradient-to-b from-brand-dark to-gray-900 py-24 text-center">
         <div className="mx-auto max-w-4xl px-4">

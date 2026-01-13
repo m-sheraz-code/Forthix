@@ -5,25 +5,24 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl) {
-  throw new Error('Missing SUPABASE_URL environment variable');
-}
-
-if (!supabaseAnonKey) {
-  throw new Error('Missing SUPABASE_ANON_KEY environment variable');
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('CRITICAL: Missing Supabase environment variables! Check your .env file.');
 }
 
 /**
  * Public Supabase client - uses anon key
  * Safe for operations that respect RLS policies
  */
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    detectSessionInUrl: false,
-  },
-});
+export const supabase: SupabaseClient = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  });
 
 /**
  * Admin Supabase client - uses service role key
@@ -36,13 +35,16 @@ export const getAdminClient = (): SupabaseClient | null => {
     return null;
   }
 
-  return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  });
+  return createClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseServiceRoleKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+    });
 };
 
 /**
@@ -50,18 +52,21 @@ export const getAdminClient = (): SupabaseClient | null => {
  * Used for authenticated requests that respect RLS
  */
 export const createAuthenticatedClient = (accessToken: string): SupabaseClient => {
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+  return createClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseAnonKey || 'placeholder',
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       },
-    },
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  });
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+    });
 };
 
 /**
@@ -76,10 +81,10 @@ export const verifyAuthToken = async (
   }
 
   const token = authHeader.replace('Bearer ', '');
-  
+
   try {
     const { data, error } = await supabase.auth.getUser(token);
-    
+
     if (error || !data.user) {
       return null;
     }

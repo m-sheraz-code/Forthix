@@ -21,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return errorResponse(res, 400, symbolError);
     }
 
-    const symbolStr = symbol as string;
+    const symbolStr = (symbol as string).toUpperCase();
     const rangeStr = (range as string) || '1d';
 
     // Fetch quote and chart data in parallel

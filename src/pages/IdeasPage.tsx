@@ -1,9 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import IdeaCard from '../components/IdeaCard';
-import { ideasItems } from '../data/mockData';
+import { getIdeas, Idea } from '../lib/api';
 
 export default function IdeasPage() {
   const [filter, setFilter] = useState('editors');
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadIdeas() {
+      setIsLoading(true);
+      const { data } = await getIdeas(filter);
+      if (data) {
+        setIdeas(data.ideas);
+      }
+      setIsLoading(false);
+    }
+    loadIdeas();
+  }, [filter]);
 
   return (
     <div className="min-h-screen bg-brand-dark">
@@ -21,8 +36,8 @@ export default function IdeasPage() {
           <button
             onClick={() => setFilter('editors')}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'editors'
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-700 text-gray-400 hover:text-white'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-700 text-gray-400 hover:text-white'
               }`}
           >
             Editors' picks
@@ -30,28 +45,42 @@ export default function IdeasPage() {
           <button
             onClick={() => setFilter('popular')}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'popular'
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-700 text-gray-400 hover:text-white'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-700 text-gray-400 hover:text-white'
               }`}
           >
             Popular
           </button>
           <button
-            onClick={() => setFilter('recent')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'recent'
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-700 text-gray-400 hover:text-white'
+            onClick={() => setFilter('latest')}
+            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'latest'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-700 text-gray-400 hover:text-white'
               }`}
           >
             Recent
           </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {ideasItems.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex h-[300px] items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {ideas.map((idea) => (
+              <IdeaCard key={idea.id} idea={{
+                id: idea.id,
+                title: idea.title,
+                author: idea.author,
+                time: idea.time,
+                image: idea.image || 'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg',
+                likes: idea.likes,
+                comments: idea.commentCount || 0
+              }} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import NewsCard from '../components/NewsCard';
-import { newsItems } from '../data/mockData';
+import { getNews } from '../lib/api';
+
+interface NewsItem {
+  id: string;
+  title: string;
+  source: string;
+  time: string;
+  category: string;
+}
 
 export default function NewsPage() {
   const [filter, setFilter] = useState('latest');
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadNews() {
+      setIsLoading(true);
+      const { data } = await getNews(filter);
+      if (data) {
+        setNews(data.news);
+      }
+      setIsLoading(false);
+    }
+    loadNews();
+  }, [filter]);
 
   return (
     <div className="min-h-screen bg-brand-dark">
@@ -21,8 +44,8 @@ export default function NewsPage() {
           <button
             onClick={() => setFilter('latest')}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'latest'
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-700 text-gray-400 hover:text-white'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-700 text-gray-400 hover:text-white'
               }`}
           >
             Latest
@@ -30,8 +53,8 @@ export default function NewsPage() {
           <button
             onClick={() => setFilter('popular')}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'popular'
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-700 text-gray-400 hover:text-white'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-700 text-gray-400 hover:text-white'
               }`}
           >
             Popular
@@ -39,19 +62,25 @@ export default function NewsPage() {
           <button
             onClick={() => setFilter('trending')}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'trending'
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-700 text-gray-400 hover:text-white'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-700 text-gray-400 hover:text-white'
               }`}
           >
             Trending
           </button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {newsItems.map((news) => (
-            <NewsCard key={news.id} news={news} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex h-[300px] items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {news.map((newsItem) => (
+              <NewsCard key={newsItem.id} news={newsItem} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

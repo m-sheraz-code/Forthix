@@ -66,11 +66,11 @@ class MemoryCache {
     stats(): { size: number; keys: string[] } {
         // Clean up expired entries
         const now = Date.now();
-        for (const [key, entry] of this.cache.entries()) {
-            if (now > entry.expiresAt) {
+        this.cache.forEach((entry, key) => {
+            if (now > (entry as any).expiresAt) {
                 this.cache.delete(key);
             }
-        }
+        });
 
         return {
             size: this.cache.size,
@@ -84,10 +84,10 @@ export const cache = new MemoryCache();
 
 // Cache TTL constants (in seconds)
 export const CACHE_TTL = {
-    REALTIME: parseInt(process.env.YAHOO_CACHE_TTL_REALTIME || '60', 10),
-    HISTORICAL: parseInt(process.env.YAHOO_CACHE_TTL_HISTORICAL || '300', 10),
-    SEARCH: 600, // 10 minutes for search results
-    NEWS: 180, // 3 minutes for news
+    REALTIME: parseInt(process.env.YAHOO_CACHE_TTL_REALTIME || '300', 10), // 5 minutes default
+    HISTORICAL: parseInt(process.env.YAHOO_CACHE_TTL_HISTORICAL || '1800', 10), // 30 minutes default
+    SEARCH: 3600, // 1 hour for search
+    NEWS: 600, // 10 minutes for news
 };
 
 /**

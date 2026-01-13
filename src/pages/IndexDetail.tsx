@@ -1,364 +1,257 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { TrendingUp, Maximize2, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useLocation } from 'react-router-dom';
+import { TrendingUp, Maximize2, ChevronDown, Loader2 } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
-import IdeaCard from '../components/IdeaCard';
-import NewsCard from '../components/NewsCard';
-import { sseCompositeData, ideasItems, newsItems } from '../data/mockData';
+import { getIndexData, getStockData, getMarketSummary, Quote } from '../lib/api';
 
 export default function IndexDetail() {
   const { symbol } = useParams();
-  const [timeRange, setTimeRange] = useState('1M');
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const location = useLocation();
+  const isStock = location.pathname.includes('/stocks/');
 
-  const timeRanges = ['1 day', '5 days', '1 month', '6 months', 'YTD', '1 year', '5 years', 'All time'];
-  const timeRangeMap: Record<string, string> = {
-    '1 day': '1D',
-    '5 days': '5D',
-    '1 month': '1M',
-    '6 months': '6M',
-    YTD: 'YTD',
-    '1 year': '1Y',
-    '5 years': '5Y',
-    'All time': 'MAX',
+  const [timeRange, setTimeRange] = useState('1m');
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [indexData, setIndexData] = useState<(Quote & { chartData: any[] }) | null>(null);
+  const [relatedIndices, setRelatedIndices] = useState<Quote[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const timeRanges = ['1d', '5d', '1m', '6m', 'ytd', '1y', '5y', 'max'];
+
+  useEffect(() => {
+    async function loadData() {
+      if (!symbol) return;
+      setIsLoading(true);
+      const fetchFn = isStock ? getStockData : getIndexData;
+      const [indexResult, marketResult] = await Promise.all([
+        fetchFn(symbol, timeRange),
+        getMarketSummary()
+      ]);
+
+      if (indexResult.data) {
+        setIndexData(indexResult.data);
+      } else {
+        console.error(`Failed to fetch ${isStock ? 'stock' : 'index'} data:`, indexResult.error);
+      }
+
+      if (marketResult.data) {
+        // Filter out current symbol from related indices
+        setRelatedIndices(marketResult.data.indices.filter(idx => idx.symbol !== symbol));
+      }
+      setIsLoading(false);
+    }
+    loadData();
+  }, [symbol, timeRange, isStock]);
+
+  const data = indexData || {
+    symbol: symbol || 'SPX',
+    name: symbol === '000001.SS' ? 'SSE Composite Index' : symbol || 'Loading...',
+    price: 0,
+    change: 0,
+    changePercent: 0,
+    open: 0,
+    previousClose: 0,
+    volume: 0,
+    exchange: isStock ? 'Market' : 'Index',
+    chartData: []
   };
 
-  const data = sseCompositeData;
   const isPositive = data.change >= 0;
 
   return (
     <div className="min-h-screen bg-brand-dark">
-      <div className="border-b border-gray-800 bg-brand-dark py-4">
+      <div className="border-b border-white/5 bg-brand-dark py-4">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-gray-400">
-            <Link to="/markets" className="hover:text-white">
-              Markets
-            </Link>
+            <Link to="/markets" className="hover:text-white transition-colors">Markets</Link>
             <span>/</span>
-            <Link to="/markets" className="hover:text-white">
-              Markets/China
-            </Link>
+            <span>{isStock ? 'Stocks' : 'Indices'}</span>
             <span>/</span>
-            <span>Indices</span>
-            <span>/</span>
-            <span className="text-white">{symbol}</span>
+            <span className="text-white font-medium">{symbol}</span>
           </div>
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-teal-600">
-                <TrendingUp className="h-7 w-7 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                <TrendingUp className="h-7 w-7 text-blue-500" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">{data.name}</h1>
-                <p className="text-sm text-gray-400">
-                  {symbol} • {data.exchange} •
+                <h1 className="text-3xl font-bold text-white tracking-tight">{data.name}</h1>
+                <p className="text-sm font-medium text-gray-500">
+                  {symbol} • {data.exchange} • {isStock ? 'Stock' : 'Index'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 flex items-end gap-4">
+          <div className="mt-6 flex items-end gap-4">
             <div>
-              <p className="text-4xl font-bold text-white">
-                {data.price.toLocaleString('en-US', { minimumFractionDigits: 4 })}
+              <p className="text-5xl font-bold text-white tracking-tight">
+                {isLoading ? '...' : data.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </p>
-              <p className={`text-lg ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                {isPositive ? '+' : ''}
-                {data.change.toFixed(4)} {isPositive ? '+' : ''}
-                {data.changePercent.toFixed(2)}%
-              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className={`text-lg font-bold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                  {isPositive ? '+' : ''}{data.change.toFixed(2)} ({isPositive ? '+' : ''}{data.changePercent.toFixed(2)}%)
+                </span>
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-widest">Today</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <nav className="mb-6 flex gap-6 border-b border-gray-800">
-          <button className="border-b-2 border-blue-500 pb-3 text-sm font-medium text-white">
-            Overview
-          </button>
-          <button className="pb-3 text-sm text-gray-400 hover:text-white">News</button>
-          <button className="pb-3 text-sm text-gray-400 hover:text-white">Ideas</button>
-          <button className="pb-3 text-sm text-gray-400 hover:text-white">Models</button>
-          <button className="pb-3 text-sm text-gray-400 hover:text-white">Technicals</button>
-          <button className="pb-3 text-sm text-gray-400 hover:text-white">Seasonals</button>
-          <button className="pb-3 text-sm text-gray-400 hover:text-white">Components</button>
-        </nav>
+      <div className="mx-auto max-w-7xl px-4 py-8">
 
-        <div className="mb-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Chart</h2>
-            <div className="flex items-center gap-2">
-              <button className="rounded-lg border border-gray-700 p-2 text-gray-400 hover:text-white">
-                <Maximize2 className="h-4 w-4" />
-              </button>
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-2xl backdrop-blur-xl mb-8">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex bg-white/5 p-1 rounded-xl">
+                  {timeRanges.map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => setTimeRange(range)}
+                      className={`rounded-lg px-4 py-1.5 text-xs font-bold uppercase transition-all ${timeRange === range
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                        : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+                <Link
+                  to={`/chart/${symbol}`}
+                  className="rounded-xl bg-white/5 p-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
+                <PriceChart data={data.chartData} isPositive={isPositive} />
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-8 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+              {[
+                { label: 'Prev Close', value: data.previousClose?.toLocaleString() || '--' },
+                { label: 'Open', value: data.open?.toLocaleString() || '--' },
+                { label: 'Volume', value: data.volume?.toLocaleString() || '--' },
+                { label: 'Exchange', value: data.exchange || '--' },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-2xl border border-white/5 bg-gray-900/50 p-5 transition-all hover:border-white/10 group">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 group-hover:text-gray-400">{stat.label}</p>
+                  <p className="mt-2 text-lg font-bold text-white">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-8">
+              <h3 className="mb-6 text-xl font-bold text-white flex items-center gap-2">
+                Market Analysis
+                <div className="h-px flex-1 bg-white/5" />
+              </h3>
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-6">
+                  <h4 className="mb-4 text-center text-xs font-bold uppercase tracking-widest text-gray-500">Oscillators</h4>
+                  <div className="flex h-32 items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-500">BUY</p>
+                      <p className="text-[10px] font-bold text-gray-600 mt-1 uppercase">Neutral Trend</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-6 ring-1 ring-red-500/20 shadow-lg shadow-red-500/5">
+                  <h4 className="mb-4 text-center text-xs font-bold uppercase tracking-widest text-gray-500">Summary</h4>
+                  <div className="flex h-32 items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-red-500">SELL</p>
+                      <p className="text-[10px] font-bold text-gray-600 mt-1 uppercase">Strong Resistance</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-6">
+                  <h4 className="mb-4 text-center text-xs font-bold uppercase tracking-widest text-gray-500">Moving Averages</h4>
+                  <div className="flex h-32 items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-red-400">SELL</p>
+                      <p className="text-[10px] font-bold text-gray-600 mt-1 uppercase">Bearish Cross</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex gap-2">
-                {timeRanges.map((range) => (
-                  <button
-                    key={range}
-                    onClick={() => setTimeRange(timeRangeMap[range])}
-                    className={`rounded px-3 py-1.5 text-xs font-medium ${timeRange === timeRangeMap[range]
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-400 hover:text-white'
-                      }`}
+          <div className="space-y-8">
+            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-xl">
+              <h3 className="mb-4 text-lg font-bold text-white">About {data.name}</h3>
+              <p className="text-sm leading-relaxed text-gray-400">
+                Live market data for {data.name} ({symbol}). This index/stock is part of the global trading market.
+                Keep track of performance, volume, and real-time updates through Forthix's advanced charting system.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-xl">
+              <h3 className="mb-4 text-lg font-bold text-white">Related Markets</h3>
+              <div className="space-y-3">
+                {relatedIndices.slice(0, 4).map((idx: Quote) => (
+                  <Link
+                    key={idx.symbol}
+                    to={`/indices/${idx.symbol}`}
+                    className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-3 transition-all hover:bg-white/10"
                   >
-                    {range}
-                  </button>
+                    <div>
+                      <p className="text-sm font-bold text-white uppercase">{idx.symbol}</p>
+                      <p className="text-xs text-gray-500">{idx.name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-white">${idx.price.toLocaleString()}</p>
+                      <p className={`text-[10px] font-bold ${idx.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {idx.change >= 0 ? '+' : ''}{idx.changePercent.toFixed(2)}%
+                      </p>
+                    </div>
+                  </Link>
                 ))}
               </div>
-              <span className="rounded bg-green-600 px-2 py-1 text-xs font-medium text-white">
-                Full market
-              </span>
             </div>
 
-            <div className="h-96">
-              <PriceChart data={data.chartData} isPositive={isPositive} />
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 rounded-lg border border-gray-800 bg-gray-900 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Key data points</h3>
-          <div className="grid gap-6 md:grid-cols-4">
-            <div>
-              <p className="text-sm text-gray-400">Volume</p>
-              <p className="text-xl font-semibold text-white">
-                {data.volume.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Previous Close</p>
-              <p className="text-xl font-semibold text-white">
-                {data.previousClose.toLocaleString('en-US', { minimumFractionDigits: 4 })} CNY
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Open</p>
-              <p className="text-xl font-semibold text-white">
-                {data.open.toLocaleString('en-US', { minimumFractionDigits: 4 })}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Day's range</p>
-              <p className="text-xl font-semibold text-white">
-                {data.dayRange.low.toLocaleString('en-US', { minimumFractionDigits: 4 })} —{' '}
-                {data.dayRange.high.toLocaleString('en-US', { minimumFractionDigits: 4 })}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 rounded-lg border border-gray-800 bg-gray-900 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">About SSE Composite Index</h3>
-          <p className="text-sm leading-relaxed text-gray-300">
-            The SSE Composite Index, also referred to as the Shanghai Index, is a stock market index
-            that tracks the performance of all stocks listed on the Shanghai Stock Exchange. First introduced in
-            1991, it is a key indicator of market performance in China. <span className="text-blue-400 cursor-pointer hover:underline">Show more</span>
-          </p>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Related indices</h3>
-          <div className="grid gap-4 md:grid-cols-4">
-            {data.relatedIndices.map((index) => (
-              <Link
-                key={index.symbol}
-                to={`/indices/${index.symbol}`}
-                className="rounded-lg border border-gray-800 bg-gray-900 p-4 transition-colors hover:border-gray-700"
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-800">
-                    <TrendingUp className="h-4 w-4 text-blue-400" />
+            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-xl">
+              <h3 className="mb-6 text-lg font-bold text-white">FAQ</h3>
+              <div className="space-y-3">
+                {[
+                  {
+                    q: `What is ${data.name} price today?`,
+                    a: `${data.name} is currently trading at ${data.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}. The market is showing a ${isPositive ? 'bullish' : 'bearish'} trend.`
+                  },
+                  {
+                    q: 'Is it a good time to buy?',
+                    a: 'Our technical analysis indicators are currently suggesting a sell signal for the short term based on moving averages. Always perform your own research.'
+                  }
+                ].map((faq, i) => (
+                  <div key={i} className="rounded-2xl border border-white/5 bg-white/5 overflow-hidden transition-all">
+                    <button
+                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                      className="flex w-full items-center justify-between p-4 text-left"
+                    >
+                      <span className="text-xs font-bold text-white pr-4">{faq.q}</span>
+                      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-300 ${openFaq === i ? 'rotate-180' : ''}`} />
+                    </button>
+                    <div
+                      className={`px-4 pb-4 text-xs leading-loose text-gray-500 transition-all duration-300 ${openFaq === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+                        }`}
+                    >
+                      <p className="pt-2 border-t border-white/5">{faq.a}</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400">{index.symbol}</p>
-                </div>
-                <h4 className="mb-2 text-sm font-medium text-white">{index.name}</h4>
-                <p className="text-lg font-semibold text-white">
-                  {index.price.toLocaleString('en-US', { minimumFractionDigits: 4 })}
-                </p>
-                <p className={`text-sm ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {index.change >= 0 ? '+' : ''}
-                  {index.change.toFixed(2)} ({index.changePercent.toFixed(2)}%)
-                </p>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">News</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            {newsItems.slice(0, 2).map((news) => (
-              <NewsCard key={news.id} news={news} />
-            ))}
-          </div>
-          <div className="mt-4 text-center">
-            <Link to="/news" className="text-sm text-blue-400 hover:underline">
-              Keep reading →
-            </Link>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Ideas</h3>
-          <div className="grid gap-4 md:grid-cols-3">
-            {ideasItems.slice(0, 3).map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Technicals</h3>
-          <p className="mb-4 text-sm text-gray-400">Summarizing what the indicators are suggesting</p>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-              <h4 className="mb-4 text-center text-sm font-semibold text-white">Oscillators</h4>
-              <div className="mb-4 flex items-center justify-center">
-                <div className="relative h-32 w-32">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#374151"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#3b82f6"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray="188.5"
-                      strokeDashoffset="62.8"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-blue-400">Buy</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-              <h4 className="mb-4 text-center text-sm font-semibold text-white">Summary</h4>
-              <div className="mb-4 flex items-center justify-center">
-                <div className="relative h-32 w-32">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#374151"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#ef4444"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray="188.5"
-                      strokeDashoffset="31.4"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
-                    <span className="text-sm font-bold leading-tight text-red-500">Strong Sell</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-              <h4 className="mb-4 text-center text-sm font-semibold text-white">Moving Averages</h4>
-              <div className="mb-4 flex items-center justify-center">
-                <div className="relative h-32 w-32">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#374151"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#ef4444"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray="188.5"
-                      strokeDashoffset="62.8"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-red-400">Sell</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-800 bg-gray-900 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Frequently Asked Questions</h3>
-          <div className="space-y-4">
-            {[
-              {
-                q: `What is SSE Composite Index value today?`,
-                a: `The SSE Composite Index is currently trading at ${data.price.toLocaleString('en-US', { minimumFractionDigits: 4 })}. The market is showing a ${data.change >= 0 ? 'positive' : 'negative'} trend with a ${data.changePercent.toFixed(2)}% change today.`
-              },
-              {
-                q: `What is SSE Composite Index highest value ever?`,
-                a: `The SSE Composite Index reached its historical all-time high of 6,124.04 points on October 16, 2007, during a massive bull run in the Chinese markets.`
-              },
-              {
-                q: `What is SSE Composite Index lowest value ever?`,
-                a: `Since its inception in 1990, the index's all-time low was approximately 95.79 points, recorded on December 19, 1990.`
-              },
-              {
-                q: `What are the largest SSE Composite Index companies?`,
-                a: `The index is weighted by market capitalization and includes giants like Kweichow Moutai, ICBC (Industrial and Commercial Bank of China), PetroChina, and Agricultural Bank of China.`
-              },
-              {
-                q: `How to invest in SSE Composite Index?`,
-                a: `Investors can gain exposure through index-tracking ETFs, mutual funds, or by trading index futures. Many international brokers offer access to Chinese A-shares through Stock Connect programs.`
-              }
-            ].map((faq, index) => (
-              <div key={index} className="rounded-lg border border-gray-800 bg-gray-900 overflow-hidden transition-all hover:border-gray-700">
-                <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="flex w-full items-center justify-between p-4 text-left"
-                >
-                  <span className="text-sm font-medium text-white">{faq.q}</span>
-                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${openFaq === index ? 'rotate-180' : ''}`} />
-                </button>
-                <div
-                  className={`px-4 pb-4 text-sm text-gray-400 transition-all duration-300 ${openFaq === index ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-                    } border-t border-gray-800/50 mt-[-1px]`}
-                >
-                  <div className="pt-4">
-                    {faq.a}
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

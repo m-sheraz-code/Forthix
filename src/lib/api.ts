@@ -68,6 +68,7 @@ export interface Quote {
     price: number;
     change: number;
     changePercent: number;
+    exchange?: string;
     previousClose?: number;
     open?: number;
     dayHigh?: number;
@@ -103,11 +104,11 @@ export async function getMarketSummary() {
 }
 
 export async function getIndexData(symbol: string, range = '1d') {
-    return apiFetch<Quote & { chartData: any[] }>(`/indices/${symbol}?range=${range}`);
+    return apiFetch<Quote & { chartData: any[] }>(`/indices?symbol=${symbol}&range=${range}`);
 }
 
 export async function getStockData(symbol: string, range = '1d') {
-    return apiFetch<Quote & { chartData: any[] }>(`/stocks/${symbol}?range=${range}`);
+    return apiFetch<Quote & { chartData: any[] }>(`/stocks?symbol=${symbol}&range=${range}`);
 }
 
 export async function searchStocks(query: string) {
