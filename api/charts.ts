@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createAuthenticatedClient } from './lib/supabase.js';
-import { getChartData } from './lib/yahoo-finance.js';
+import { createAuthenticatedClient } from './_lib/supabase.js';
+import { getChartData } from './_lib/yahoo-finance.js';
 import {
     handleOptions,
     setCorsHeaders,
     errorResponse,
     validateSymbol,
     validateRequired,
-} from './lib/middleware.js';
+} from './_lib/middleware.js';
 
 const VALID_RANGES = ['1d', '5d', '1m', '6m', 'ytd', '1y', '5y', 'max'];
 

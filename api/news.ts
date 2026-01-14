@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getMarketNews } from './lib/yahoo-finance.js';
-import { supabase, getAdminClient } from './lib/supabase.js';
-import { handleOptions, setCorsHeaders, errorResponse } from './lib/middleware.js';
+import { getMarketNews } from './_lib/yahoo-finance.js';
+import { supabase, getAdminClient } from './_lib/supabase.js';
+import { handleOptions, setCorsHeaders, errorResponse } from './_lib/middleware.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleOptions(req, res)) return;

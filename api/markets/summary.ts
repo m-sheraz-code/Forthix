@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getMarketSummary, getMarketMovers, getChartData } from '../lib/yahoo-finance.js';
-import { handleOptions, setCorsHeaders, errorResponse } from '../lib/middleware.js';
+import { getMarketSummary, getMarketMovers, getChartData } from '../_lib/yahoo-finance.js';
+import { handleOptions, setCorsHeaders, errorResponse } from '../_lib/middleware.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Handle CORS preflight

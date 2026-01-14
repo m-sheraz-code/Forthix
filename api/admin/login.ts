@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleOptions, setCorsHeaders, errorResponse } from '../lib/middleware.js';
+import { handleOptions, setCorsHeaders, errorResponse } from '../_lib/middleware.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (handleOptions(req, res)) return;
