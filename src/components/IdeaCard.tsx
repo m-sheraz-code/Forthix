@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle } from 'lucide-react';
+// Removed icons
 import { IdeaItem } from '../data/mockData';
 
 interface IdeaCardProps {
@@ -18,24 +18,14 @@ export default function IdeaCard({ idea }: IdeaCardProps) {
           />
         </div>
         <div className="p-4">
-          <div className="mb-2 flex items-center gap-2 text-xs text-gray-400">
-            <span>{idea.author}</span>
-            <span>•</span>
-            <span>{idea.time}</span>
+          <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+            <span className="text-blue-400">{idea.author}</span>
+            <span className="h-1 w-1 rounded-full bg-gray-700" />
+            <span>{new Date(idea.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
-          <h3 className="mb-3 text-sm font-medium text-white group-hover:text-blue-400">
+          <h3 className="text-base font-bold text-white group-hover:text-blue-400 leading-snug">
             {idea.title}
           </h3>
-          <div className="flex items-center gap-4 text-xs text-gray-400">
-            <div className="flex items-center gap-1">
-              <Heart className="h-4 w-4" />
-              <span>{idea.likes}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="h-4 w-4" />
-              <span>{idea.comments}</span>
-            </div>
-          </div>
         </div>
       </div>
     </Link>

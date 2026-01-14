@@ -9,10 +9,11 @@ interface NewsItem {
   source: string;
   time: string;
   category: string;
+  publishedAt?: string;
 }
 
 export default function NewsPage() {
-  const [filter, setFilter] = useState('latest');
+  const filter = 'latest';
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,35 +41,6 @@ export default function NewsPage() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="mb-6 flex gap-2">
-          <button
-            onClick={() => setFilter('latest')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'latest'
-              ? 'bg-blue-600 text-white'
-              : 'border border-gray-700 text-gray-400 hover:text-white'
-              }`}
-          >
-            Latest
-          </button>
-          <button
-            onClick={() => setFilter('popular')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'popular'
-              ? 'bg-blue-600 text-white'
-              : 'border border-gray-700 text-gray-400 hover:text-white'
-              }`}
-          >
-            Popular
-          </button>
-          <button
-            onClick={() => setFilter('trending')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'trending'
-              ? 'bg-blue-600 text-white'
-              : 'border border-gray-700 text-gray-400 hover:text-white'
-              }`}
-          >
-            Trending
-          </button>
-        </div>
 
         {isLoading ? (
           <div className="flex h-[300px] items-center justify-center">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Loader2, ArrowUpRight, ArrowDownRight, Plus } from 'lucide-react';
+import { Loader2, ArrowUpRight, ArrowDownRight, Plus, Globe, BarChart2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MiniChart from '../components/MiniChart';
 import { getMarketSummary, MarketSummary, Quote } from '../lib/api';
@@ -24,6 +24,7 @@ export default function MarketDashboard() {
   const [marketData, setMarketData] = useState<MarketSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [visibleIndicesCount, setVisibleIndicesCount] = useState(9);
+  const [visibleStocksCount, setVisibleStocksCount] = useState(5);
 
   useEffect(() => {
     async function loadData() {
@@ -41,6 +42,10 @@ export default function MarketDashboard() {
     setVisibleIndicesCount((prev) => prev + 3);
   };
 
+  const handleLoadMoreStocks = () => {
+    setVisibleStocksCount((prev) => prev + 5);
+  };
+
   return (
     <div className="min-h-screen bg-brand-dark">
       <div className="border-b border-white/5 bg-brand-dark py-12">
@@ -53,17 +58,21 @@ export default function MarketDashboard() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-10 flex gap-8 border-b border-white/5 overflow-x-auto no-scrollbar">
-          {['indices', 'stocks', 'crypto', 'forex', 'commodities'].map((tab) => (
+        <div className="mb-10 flex gap-4 border-b border-white/5 overflow-x-auto no-scrollbar">
+          {[
+            { id: 'indices', label: 'Market Indices', icon: Globe },
+            { id: 'stocks', label: 'US Stocks', icon: BarChart2 }
+          ].map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === tab
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`group flex items-center gap-3 pb-4 text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap px-2 ${activeTab === tab.id
                 ? 'border-b-2 border-blue-500 text-white'
                 : 'text-gray-500 hover:text-gray-300'
                 }`}
             >
-              {tab}
+              <tab.icon className={`h-4 w-4 transition-colors ${activeTab === tab.id ? 'text-blue-500' : 'text-gray-600 group-hover:text-gray-400'}`} />
+              {tab.label}
             </button>
           ))}
         </div>
@@ -133,7 +142,7 @@ export default function MarketDashboard() {
                 <div>
                   <h2 className="mb-6 text-2xl font-bold text-white tracking-tight">Market Gainers</h2>
                   <div className="space-y-3">
-                    {marketData?.movers.gainers.map((stock: Quote) => (
+                    {marketData?.movers.gainers.slice(0, visibleStocksCount).map((stock: Quote) => (
                       <Link
                         key={stock.symbol}
                         to={`/indices/${stock.symbol}`}
@@ -159,7 +168,7 @@ export default function MarketDashboard() {
                 <div>
                   <h2 className="mb-6 text-2xl font-bold text-white tracking-tight">Most Active</h2>
                   <div className="space-y-3">
-                    {marketData?.movers.mostActive.map((stock: Quote) => (
+                    {marketData?.movers.mostActive.slice(0, visibleStocksCount).map((stock: Quote) => (
                       <Link
                         key={stock.symbol}
                         to={`/indices/${stock.symbol}`}
@@ -184,21 +193,18 @@ export default function MarketDashboard() {
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
 
-            {(activeTab === 'crypto' || activeTab === 'forex' || activeTab === 'commodities') && (
-              <div className="rounded-3xl border border-white/5 bg-gray-900 shadow-2xl p-16 text-center">
-                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-500/10">
-                  <TrendingUp className="h-10 w-10 text-blue-500" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2 uppercase tracking-widest">{activeTab} Market</h3>
-                <p className="text-gray-500 font-medium">This segment is currently integrating live data. Check back shortly.</p>
-                <div className="mt-8">
-                  <button className="rounded-xl bg-blue-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all">
-                    Set Alert
-                  </button>
-                </div>
+                {marketData && (marketData.movers.gainers.length > visibleStocksCount || marketData.movers.mostActive.length > visibleStocksCount) && (
+                  <div className="col-span-full mt-12 flex justify-center">
+                    <button
+                      onClick={handleLoadMoreStocks}
+                      className="group relative flex items-center gap-2 rounded-2xl border border-white/5 bg-white/5 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/10 hover:border-white/20 active:scale-95"
+                    >
+                      <Plus className="h-4 w-4 text-blue-500 transition-transform group-hover:rotate-90" />
+                      Load More Stocks
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

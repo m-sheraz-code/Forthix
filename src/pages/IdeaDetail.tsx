@@ -1,26 +1,46 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
-import { getIdea, Idea } from '../lib/api';
+import { ArrowLeft, Loader2, TrendingUp, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { getIdea, getIdeas, Idea } from '../lib/api';
 
 export default function IdeaDetail() {
     const { id } = useParams<{ id: string }>();
     const [idea, setIdea] = useState<Idea | null>(null);
+    const [allIdeas, setAllIdeas] = useState<Idea[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLiked, setIsLiked] = useState(false);
 
     useEffect(() => {
-        async function fetchIdea() {
+        async function fetchData() {
             if (!id) return;
             setIsLoading(true);
-            const { data } = await getIdea(id);
-            if (data) {
-                setIdea(data.idea);
+
+            // Fetch current idea and list for navigation
+            const [ideaRes, listRes] = await Promise.all([
+                getIdea(id),
+                getIdeas('latest')
+            ]);
+
+            let currentIdea = ideaRes.data?.idea || null;
+            const ideasList = listRes.data?.ideas || [];
+
+            // Fallback: if single fetch fails, find in list
+            if (!currentIdea && ideasList.length > 0) {
+                currentIdea = ideasList.find(i => i.id === id) || null;
+                console.warn('Idea not found in single fetch, recovered from list');
             }
+
+            setIdea(currentIdea);
+            setAllIdeas(ideasList);
+
             setIsLoading(false);
+            window.scrollTo(0, 0);
         }
-        fetchIdea();
+        fetchData();
     }, [id]);
+
+    const currentIndex = allIdeas.findIndex(i => i.id === id);
+    const prevIdea = currentIndex > 0 ? allIdeas[currentIndex - 1] : null;
+    const nextIdea = currentIndex < allIdeas.length - 1 ? allIdeas[currentIndex + 1] : null;
 
     if (isLoading) {
         return (
@@ -34,7 +54,9 @@ export default function IdeaDetail() {
         return (
             <div className="flex min-h-[60vh] flex-col items-center justify-center bg-brand-dark text-center">
                 <h2 className="mb-4 text-2xl font-bold text-white">Idea not found</h2>
-                <Link to="/ideas" className="text-blue-500 hover:underline">Back to Community Ideas</Link>
+                <Link to="/ideas" className="text-blue-500 hover:underline inline-flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4" /> Back to Community Ideas
+                </Link>
             </div>
         );
     }
@@ -50,124 +72,143 @@ export default function IdeaDetail() {
                 </div>
             </div>
 
-            <div className="mx-auto max-w-7xl px-4 py-8">
-                <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-                    <div className="space-y-8">
-                        {/* Header */}
-                        <div>
-                            <h1 className="mb-4 text-3xl font-bold text-white md:text-4xl">{idea.title}</h1>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
-                                        {idea.authorAvatar ? (
-                                            <img src={idea.authorAvatar} alt={idea.author} className="h-full w-full rounded-full object-cover" />
-                                        ) : (
-                                            idea.author[0].toUpperCase()
-                                        )}
-                                    </div>
-                                    <span className="font-medium text-white">{idea.author}</span>
+            <div className="mx-auto max-w-7xl px-4 py-12">
+                {/* Hero Banner Style Design */}
+                {idea.image && (
+                    <div className="mb-12 overflow-hidden rounded-3xl border border-white/5 shadow-2xl relative">
+                        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 to-transparent z-10" />
+                        <img
+                            src={idea.image}
+                            alt={idea.title}
+                            className="h-[500px] w-full object-cover"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 p-8 z-20">
+                            {idea.symbol && (
+                                <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-blue-500 px-3 py-1 text-xs font-bold text-white uppercase tracking-wider">
+                                    <TrendingUp className="h-3 w-3" />
+                                    {idea.symbol}
                                 </div>
-                                <span>•</span>
-                                <span>{idea.time}</span>
-                                {idea.symbol && (
-                                    <>
-                                        <span>•</span>
-                                        <Link to={`/indices/${idea.symbol}`} className="flex items-center gap-1.5 text-blue-400 font-bold hover:bg-blue-500/10 px-2 py-0.5 rounded-md transition-colors">
-                                            <TrendingUp className="h-3.5 w-3.5" />
-                                            {idea.symbol}
-                                        </Link>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Featured Image */}
-                        {idea.image && (
-                            <div className="overflow-hidden rounded-2xl border border-white/5">
-                                <img src={idea.image} alt={idea.title} className="w-full object-cover" />
-                            </div>
-                        )}
-
-                        {/* Content */}
-                        <div className="prose prose-invert max-w-none text-gray-300 leading-relaxed">
-                            {idea.content ? (
-                                idea.content.split('\n').map((line, i) => (
-                                    <p key={i} className="mb-4">{line}</p>
-                                ))
-                            ) : (
-                                <p>No additional description provided for this idea.</p>
                             )}
-                        </div>
-
-                        {/* Interactions */}
-                        <div className="flex items-center gap-6 border-y border-white/5 py-6">
-                            <button
-                                onClick={() => setIsLiked(!isLiked)}
-                                className={`flex items-center gap-2.5 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                <Heart className={`h-6 w-6 ${isLiked ? 'fill-current' : ''}`} />
-                                <span className="font-medium">{idea.likes + (isLiked ? 1 : 0)}</span>
-                            </button>
-                            <button className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors">
-                                <MessageCircle className="h-6 w-6" />
-                                <span className="font-medium">{idea.commentCount || 0}</span>
-                            </button>
-                            <button className="ml-auto flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors">
-                                <Share2 className="h-5 w-5" />
-                                <span className="font-medium">Share</span>
-                            </button>
-                        </div>
-
-                        {/* Comments Placeholder */}
-                        <div className="space-y-6 pt-4">
-                            <h3 className="text-xl font-bold text-white">Comments ({idea.commentCount || 0})</h3>
-                            <div className="rounded-xl bg-white/5 p-4 border border-white/10">
-                                <textarea
-                                    placeholder="Share your thoughts on this idea..."
-                                    className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 min-h-[100px] resize-none"
-                                />
-                                <div className="mt-2 flex justify-end">
-                                    <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 transition-colors">
-                                        Post Comment
-                                    </button>
+                            <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl lg:text-6xl max-w-4xl leading-tight">
+                                {idea.title}
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-300">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/20 shadow-lg backdrop-blur-md">
+                                        {idea.author[0].toUpperCase()}
+                                    </div>
+                                    <span className="font-bold text-white text-base">{idea.author}</span>
+                                </div>
+                                <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
+                                    <Calendar className="h-4 w-4 text-blue-400" />
+                                    <span className="font-medium">{new Date(idea.created_at || idea.time).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+                )}
+
+                <div className="grid gap-12 lg:grid-cols-[1fr_350px]">
+                    <div className="space-y-12">
+                        {/* Content */}
+                        <div className="prose prose-invert max-w-none text-xl text-gray-300 leading-relaxed font-normal">
+                            {!idea.image && (
+                                <div className="mb-8 border-b border-white/5 pb-8">
+                                    <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl">{idea.title}</h1>
+                                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                                        <span className="font-bold text-blue-400">{idea.author}</span>
+                                        <span>•</span>
+                                        <span>{new Date(idea.created_at || idea.time).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                    </div>
+                                </div>
+                            )}
+                            {idea.content ? (
+                                idea.content.split('\n').map((line, i) => (
+                                    <p key={i} className="mb-8">{line}</p>
+                                ))
+                            ) : (
+                                <p className="text-gray-500 italic">No additional description provided for this idea.</p>
+                            )}
+                        </div>
+
+                        {/* Sequential Navigation */}
+                        <div className="flex flex-col gap-4 border-t border-white/5 pt-12 sm:flex-row sm:items-center sm:justify-between">
+                            {prevIdea ? (
+                                <Link
+                                    to={`/ideas/${prevIdea.id}`}
+                                    className="group flex flex-1 flex-col items-start gap-2 rounded-2xl border border-white/5 bg-gray-900/30 p-4 transition-all hover:bg-white/5 hover:border-gray-700"
+                                >
+                                    <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-gray-500 group-hover:text-blue-400">
+                                        <ChevronLeft className="h-4 w-4" /> Previous Idea
+                                    </span>
+                                    <span className="line-clamp-1 font-bold text-white group-hover:text-blue-400">{prevIdea.title}</span>
+                                </Link>
+                            ) : <div className="flex-1" />}
+
+                            <div className="hidden h-12 w-px bg-white/5 sm:block mx-4" />
+
+                            {nextIdea ? (
+                                <Link
+                                    to={`/ideas/${nextIdea.id}`}
+                                    className="group flex flex-1 flex-col items-end gap-2 rounded-2xl border border-white/5 bg-gray-900/30 p-4 text-right transition-all hover:bg-white/5 hover:border-gray-700"
+                                >
+                                    <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-gray-500 group-hover:text-blue-400">
+                                        Next Idea <ChevronRight className="h-4 w-4" />
+                                    </span>
+                                    <span className="line-clamp-1 font-bold text-white group-hover:text-blue-400">{nextIdea.title}</span>
+                                </Link>
+                            ) : <div className="flex-1" />}
+                        </div>
+                    </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-6">
-                        <div className="rounded-2xl border border-white/5 bg-gray-900/30 p-5">
-                            <h3 className="mb-4 font-bold text-white">About the Author</h3>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-lg font-bold">
+                    <div className="space-y-8">
+                        <div className="rounded-3xl border border-white/5 bg-gray-900/30 p-8 backdrop-blur-sm">
+                            <h3 className="mb-6 text-xs font-bold uppercase tracking-widest text-blue-400">About the Author</h3>
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="h-14 w-14 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xl font-bold border border-blue-500/10">
                                     {idea.author[0].toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-white">{idea.author}</p>
-                                    <p className="text-xs text-gray-500">Pro Trader • 12.4k followers</p>
+                                    <p className="font-bold text-white text-xl">{idea.author}</p>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-tight">Forthix Research Team</p>
                                 </div>
                             </div>
-                            <button className="w-full rounded-xl bg-white/10 py-2 text-sm font-bold text-white hover:bg-white/20 transition-colors">
-                                Follow
-                            </button>
-                        </div>
-
-                        <div className="rounded-2xl border border-white/5 bg-gray-900/30 p-5">
-                            <h3 className="mb-4 font-bold text-white">Related Symbols</h3>
-                            <div className="space-y-3">
-                                {['SPX', 'NDX', 'TSLA'].map(sym => (
-                                    <Link
-                                        key={sym}
-                                        to={`/indices/${sym}`}
-                                        className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-all grayscale hover:grayscale-0"
-                                    >
-                                        <span className="font-bold text-white">{sym}</span>
-                                        <TrendingUp className="h-4 w-4 text-blue-500" />
-                                    </Link>
+                            <p className="text-base text-gray-400 leading-relaxed mb-6 font-medium">
+                                Official market analysis and high-probability trading ideas from the Forthix editorial desk.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {['Strategy', 'Market Alpha', 'Trading'].map(tag => (
+                                    <span key={tag} className="rounded-xl bg-blue-500/10 border border-blue-500/20 px-3 py-1 text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                                        #{tag}
+                                    </span>
                                 ))}
                             </div>
                         </div>
+
+                        {idea.symbol && (
+                            <div className="rounded-3xl border border-white/5 bg-gray-900/30 p-8 backdrop-blur-sm">
+                                <h3 className="mb-6 text-xs font-bold uppercase tracking-widest text-blue-400">Analysis Context</h3>
+                                <Link
+                                    to={`/indices/${idea.symbol}`}
+                                    className="group flex flex-col gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-2xl font-black text-white group-hover:text-blue-400 transition-colors tracking-tight">{idea.symbol}</span>
+                                            <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-1">Instrument Focus</span>
+                                        </div>
+                                        <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <TrendingUp className="h-6 w-6 text-blue-500" />
+                                        </div>
+                                    </div>
+                                    <div className="h-px bg-white/5" />
+                                    <span className="text-xs font-bold text-blue-400 uppercase tracking-widest italic group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                                        View real-time chart <ChevronRight className="h-3 w-3" />
+                                    </span>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -9,6 +9,7 @@ import IdeaDetail from './pages/IdeaDetail';
 import NewsDetail from './pages/NewsDetail';
 import SearchResults from './pages/SearchResults';
 import ChartEditor from './pages/ChartEditor';
+import AdminPanel from './pages/AdminPanel';
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
       {
         path: 'search',
         element: <SearchResults />,
+      },
+      {
+        path: 'admin-panel',
+        element: <AdminPanel />,
       },
     ],
   },

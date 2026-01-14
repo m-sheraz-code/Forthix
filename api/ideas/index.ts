@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase, createAuthenticatedClient } from './lib/supabase.js';
+import { supabase, createAuthenticatedClient, getAdminClient } from './lib/supabase.js';
 import {
   withOptionalAuth,
   AuthenticatedRequest,
@@ -58,7 +58,24 @@ async function getIdeas(req: AuthenticatedRequest, res: VercelResponse) {
         query = query.order('created_at', { ascending: false });
     }
 
-    const { data: ideas, error, count } = await query;
+    let { data: ideas, error } = await query;
+
+    // Fallback if the profile join fails
+    if (error && error.code === 'PGRST200') {
+      console.warn('Profiles relationship missing, falling back to simple select');
+      const fallbackQuery = supabase
+        .from('ideas')
+        .select('*')
+        .limit(parseInt(limit as string, 10))
+        .range(
+          parseInt(offset as string, 10),
+          parseInt(offset as string, 10) + parseInt(limit as string, 10) - 1
+        );
+
+      const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+      ideas = fallbackData;
+      error = fallbackError;
+    }
 
     if (error) {
       console.error('Get ideas error:', error);
@@ -73,9 +90,9 @@ async function getIdeas(req: AuthenticatedRequest, res: VercelResponse) {
       symbol: idea.symbol,
       image: idea.image_url,
       likes: idea.likes,
-      author: idea.profiles?.display_name || idea.profiles?.username || 'Anonymous',
+      author: idea.user_id === null ? 'Forthix Editor' : (idea.profiles?.display_name || idea.profiles?.username || 'Anonymous'),
       authorAvatar: idea.profiles?.avatar_url,
-      time: formatTimeAgo(idea.created_at),
+      time: idea.created_at, // Send raw date for frontend formatting
       created_at: idea.created_at,
     }));
 
@@ -93,13 +110,8 @@ async function getIdeas(req: AuthenticatedRequest, res: VercelResponse) {
 }
 
 async function createIdea(req: AuthenticatedRequest, res: VercelResponse) {
-  // Require authentication for creating ideas
-  if (!req.user) {
-    return errorResponse(res, 401, 'Authentication required');
-  }
-
   try {
-    const { title, content, symbol, image_url } = req.body;
+    const { title, content, symbol, image_url, username, password } = req.body;
 
     // Validation
     const titleError = validateRequired(title, 'Title');
@@ -107,22 +119,44 @@ async function createIdea(req: AuthenticatedRequest, res: VercelResponse) {
       return errorResponse(res, 400, titleError);
     }
 
-    const token = req.headers.authorization!.replace('Bearer ', '');
-    const authSupabase = createAuthenticatedClient(token);
+    let userId: string;
+    let authSupabase: any;
+
+    // Check for Admin Auth
+    const isAdmin = username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD;
+
+    if (isAdmin) {
+      // Use service role client for admin (bypasses RLS)
+      const adminClient = getAdminClient();
+      if (!adminClient) {
+        return errorResponse(res, 500, 'Admin client unavailable');
+      }
+      authSupabase = adminClient;
+      // We'll use a placeholder or specifically handle admin user_id if needed.
+      // For now, let's assume we need a user_id. In a typical setup, there might be an admin user.
+      // If not, we might need to handle this differently.
+      // Let's check if there's a system user or if we can just skip user_id if DB allows.
+      userId = req.user?.id || '00000000-0000-0000-0000-000000000000'; // System/Admin UUID
+    } else {
+      // Require authentication for normal users
+      if (!req.user) {
+        return errorResponse(res, 401, 'Authentication required');
+      }
+      userId = req.user.id;
+      const token = req.headers.authorization!.replace('Bearer ', '');
+      authSupabase = createAuthenticatedClient(token);
+    }
 
     const { data: idea, error } = await authSupabase
       .from('ideas')
       .insert({
-        user_id: req.user.id,
+        user_id: isAdmin ? null : userId,
         title,
         content: content || null,
         symbol: symbol ? symbol.toUpperCase() : null,
         image_url: image_url || null,
       })
-      .select(`
-        *,
-        profiles:user_id (username, display_name, avatar_url)
-      `)
+      .select('*')
       .single();
 
     if (error) {
@@ -138,7 +172,7 @@ async function createIdea(req: AuthenticatedRequest, res: VercelResponse) {
         symbol: idea.symbol,
         image: idea.image_url,
         likes: idea.likes,
-        author: idea.profiles?.display_name || idea.profiles?.username || 'Anonymous',
+        author: isAdmin ? 'Admin' : (idea.profiles?.display_name || idea.profiles?.username || 'Anonymous'),
         created_at: idea.created_at,
       },
     });

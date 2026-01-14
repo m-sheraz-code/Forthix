@@ -4,7 +4,7 @@ import IdeaCard from '../components/IdeaCard';
 import { getIdeas, Idea } from '../lib/api';
 
 export default function IdeasPage() {
-  const [filter, setFilter] = useState('editors');
+  const filter = 'latest';
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,35 +32,6 @@ export default function IdeasPage() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="mb-6 flex gap-2">
-          <button
-            onClick={() => setFilter('editors')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'editors'
-              ? 'bg-blue-600 text-white'
-              : 'border border-gray-700 text-gray-400 hover:text-white'
-              }`}
-          >
-            Editors' picks
-          </button>
-          <button
-            onClick={() => setFilter('popular')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'popular'
-              ? 'bg-blue-600 text-white'
-              : 'border border-gray-700 text-gray-400 hover:text-white'
-              }`}
-          >
-            Popular
-          </button>
-          <button
-            onClick={() => setFilter('latest')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${filter === 'latest'
-              ? 'bg-blue-600 text-white'
-              : 'border border-gray-700 text-gray-400 hover:text-white'
-              }`}
-          >
-            Recent
-          </button>
-        </div>
 
         {isLoading ? (
           <div className="flex h-[300px] items-center justify-center">

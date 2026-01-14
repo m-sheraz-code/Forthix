@@ -39,7 +39,7 @@ async function handler(req: AuthenticatedRequest, res: VercelResponse) {
 async function getIdea(res: VercelResponse, ideaId: string) {
     try {
         // Get idea with author info and comment count
-        const { data: idea, error } = await supabase
+        let { data: idea, error } = await supabase
             .from('ideas')
             .select(`
         *,
@@ -48,6 +48,18 @@ async function getIdea(res: VercelResponse, ideaId: string) {
       `)
             .eq('id', ideaId)
             .single();
+
+        // Fallback if the profile/comment join fails
+        if (error && error.code === 'PGRST200') {
+            console.warn('Relationships missing, falling back to simple select');
+            const fallback = await supabase
+                .from('ideas')
+                .select('*')
+                .eq('id', ideaId)
+                .single();
+            idea = fallback.data;
+            error = fallback.error;
+        }
 
         if (error || !idea) {
             return errorResponse(res, 404, 'Idea not found');
@@ -76,7 +88,7 @@ async function getIdea(res: VercelResponse, ideaId: string) {
                 symbol: idea.symbol,
                 image: idea.image_url,
                 likes: idea.likes,
-                author: idea.profiles?.display_name || idea.profiles?.username || 'Anonymous',
+                author: idea.user_id === null ? 'Forthix Editor' : (idea.profiles?.display_name || idea.profiles?.username || 'Anonymous'),
                 authorAvatar: idea.profiles?.avatar_url,
                 created_at: idea.created_at,
                 comments: (comments || []).map((c: any) => ({

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, TrendingUp, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, TrendingUp, ArrowRight, Loader2, Plus } from 'lucide-react';
 import MiniChart from '../components/MiniChart';
 import { brokers } from '../data/mockData';
 import IdeaCard from '../components/IdeaCard';
@@ -13,6 +13,7 @@ interface NewsItem {
   source: string;
   time: string;
   category: string;
+  publishedAt?: string;
 }
 
 export default function LandingPage() {
@@ -22,6 +23,7 @@ export default function LandingPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [visibleStocksCount, setVisibleStocksCount] = useState(4);
 
   useEffect(() => {
     async function loadData() {
@@ -243,14 +245,6 @@ export default function LandingPage() {
               Community ideas
               <ArrowRight className="h-5 w-5" />
             </h2>
-            <div className="flex gap-2">
-              <button className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-white">
-                Editors' picks
-              </button>
-              <button className="rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white">
-                Popular
-              </button>
-            </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {ideas.slice(0, 3).map((idea) => (
@@ -304,7 +298,7 @@ export default function LandingPage() {
             <div>
               <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Most Active</h3>
               <div className="space-y-3">
-                {(marketData?.movers.mostActive || []).map((stock) => (
+                {(marketData?.movers.mostActive || []).slice(0, visibleStocksCount).map((stock) => (
                   <Link
                     key={stock.symbol}
                     to={`/indices/${stock.symbol}`}
@@ -328,7 +322,7 @@ export default function LandingPage() {
             <div>
               <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Top Gainers</h3>
               <div className="space-y-3">
-                {(marketData?.movers.gainers || []).map((stock) => (
+                {(marketData?.movers.gainers || []).slice(0, visibleStocksCount).map((stock) => (
                   <Link
                     key={stock.symbol}
                     to={`/indices/${stock.symbol}`}
@@ -350,7 +344,7 @@ export default function LandingPage() {
             <div>
               <h3 className="mb-4 text-sm font-semibold text-white uppercase tracking-wider">Top Losers</h3>
               <div className="space-y-3">
-                {(marketData?.movers.losers || []).map((stock) => (
+                {(marketData?.movers.losers || []).slice(0, visibleStocksCount).map((stock) => (
                   <Link
                     key={stock.symbol}
                     to={`/indices/${stock.symbol}`}
@@ -369,13 +363,30 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="mt-8 text-center">
-            <Link
-              to="/markets"
-              className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
-            >
-              See all trending stocks →
-            </Link>
+
+          <div className="mt-12 flex flex-col items-center gap-6">
+            {marketData && (
+              (marketData.movers.mostActive.length > visibleStocksCount) ||
+              (marketData.movers.gainers.length > visibleStocksCount) ||
+              (marketData.movers.losers.length > visibleStocksCount)
+            ) && (
+                <button
+                  onClick={() => setVisibleStocksCount(prev => prev + 4)}
+                  className="group relative flex items-center gap-2 rounded-2xl border border-white/5 bg-white/5 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/10 hover:border-white/20 active:scale-95"
+                >
+                  <Plus className="h-4 w-4 text-blue-500 transition-transform group-hover:rotate-90" />
+                  Load More Stocks
+                </button>
+              )}
+
+            <div className="text-center">
+              <Link
+                to="/markets"
+                className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                See all trending stocks →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
