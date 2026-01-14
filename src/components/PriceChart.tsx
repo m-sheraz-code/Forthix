@@ -26,12 +26,89 @@ interface PriceChartProps {
   chartType?: string;
 }
 
-// Custom Candlestick shape
+// Custom Candlestick Shape Component
+const CandlestickShape = (props: any) => {
+  const { x, y, width, height, payload } = props;
 
-// Simplified Candlestick for Recharts using Bar with range
+  if (!payload) return null;
+
+  const { open = payload.value, close = payload.value, high, low, color } = payload;
+  const candleOpen = open ?? payload.value;
+  const candleClose = close ?? payload.value;
+  const candleHigh = high ?? Math.max(candleOpen, candleClose);
+  const candleLow = low ?? Math.min(candleOpen, candleClose);
+
+  // Calculate positions
+  const yScale = height / (Math.abs((payload.candleBody?.[1] || candleClose) - (payload.candleBody?.[0] || candleOpen)) || 1);
+  const centerX = x + width / 2;
+
+  // Wick dimensions
+  const wickWidth = 2;
+
+  // The body is already positioned by Recharts, we just need to add the wick
+  const bodyTop = y;
+  const bodyBottom = y + height;
+  const bodyHeight = Math.max(height, 1);
+
+  // For wick, we need to calculate based on high/low relative to open/close
+  const wickData = payload.candleWick || [candleLow, candleHigh];
+  const bodyData = payload.candleBody || [Math.min(candleOpen, candleClose), Math.max(candleOpen, candleClose)];
+
+  // Calculate wick extensions
+  const priceRange = wickData[1] - wickData[0];
+  const bodyRange = bodyData[1] - bodyData[0];
+
+  if (priceRange === 0) return null;
+
+  const pixelsPerUnit = bodyHeight / (bodyRange || 1);
+
+  // Top wick (from body top to high)
+  const topWickHeight = (wickData[1] - bodyData[1]) * pixelsPerUnit;
+  // Bottom wick (from body bottom to low)  
+  const bottomWickHeight = (bodyData[0] - wickData[0]) * pixelsPerUnit;
+
+  return (
+    <g>
+      {/* Top Wick */}
+      {topWickHeight > 0 && (
+        <line
+          x1={centerX}
+          y1={bodyTop - topWickHeight}
+          x2={centerX}
+          y2={bodyTop}
+          stroke={color}
+          strokeWidth={wickWidth}
+        />
+      )}
+      {/* Bottom Wick */}
+      {bottomWickHeight > 0 && (
+        <line
+          x1={centerX}
+          y1={bodyBottom}
+          x2={centerX}
+          y2={bodyBottom + bottomWickHeight}
+          stroke={color}
+          strokeWidth={wickWidth}
+        />
+      )}
+      {/* Candle Body */}
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={Math.max(height, 2)}
+        fill={color}
+        stroke={color}
+        strokeWidth={0.5}
+        rx={2}
+        ry={2}
+      />
+    </g>
+  );
+};
+
 export default function PriceChart({ data, isPositive, chartType = 'area' }: PriceChartProps) {
   // Prep data for Recharts range bars
-  // Recharts Bar in ComposedChart can take [min, max] for its value
   const chartData = data.map(d => {
     const o = d.open ?? d.value;
     const c = d.close ?? d.value;
@@ -43,7 +120,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area' }: Pri
       ...d,
       candleBody: [Math.min(o, c), Math.max(o, c)],
       candleWick: [l, h],
-      barBody: [l, h], // For OHLC bar chart
+      barBody: [l, h],
       color: isUp ? '#22c55e' : '#ef4444'
     };
   });
@@ -51,26 +128,18 @@ export default function PriceChart({ data, isPositive, chartType = 'area' }: Pri
   const renderChart = () => {
     switch (chartType) {
       case 'candle':
+        // Calculate dynamic bar size based on data density
+        const candleWidth = Math.max(6, Math.min(16, Math.floor(800 / chartData.length)));
         return (
-          <>
-            <Bar
-              dataKey="candleWick"
-              fill="none"
-              barSize={1}
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-wick-${index}`} stroke={entry.color} strokeWidth={1} />
-              ))}
-            </Bar>
-            <Bar
-              dataKey="candleBody"
-              barSize={8}
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-body-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </>
+          <Bar
+            dataKey="candleBody"
+            barSize={candleWidth}
+            shape={<CandlestickShape />}
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
         );
       case 'bar':
         // OHLC Bar chart style
