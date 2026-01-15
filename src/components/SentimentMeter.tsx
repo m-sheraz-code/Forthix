@@ -108,7 +108,7 @@ export default function SentimentMeter({ type, label }: SentimentMeterProps) {
                 }}>
                     {type.replace('-', ' ').toUpperCase()}
                 </p>
-                <p className="text-[9px] font-bold text-gray-500 uppercase mt-1 tracking-[0.2em] whitespace-nowrap opacity-70">
+                <p className="text-[9px] font-bold text-gray-500 uppercase mt-1 tracking-[0.2em] opacity-70">
                     {label}
                 </p>
             </div>
