@@ -160,22 +160,22 @@ export default function IndexDetail() {
                 Market Analysis
                 <div className="h-px flex-1 bg-white/5" />
               </h3>
-              <div className="grid gap-6 md:grid-cols-3">
-                <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-8 shadow-xl hover:bg-white/[0.02] transition-all group">
-                  <h4 className="mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-blue-400 transition-colors">Oscillators</h4>
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3">
+                <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-8 shadow-xl hover:bg-white/[0.02] transition-all group overflow-hidden">
+                  <h4 className="mb-4 sm:mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-blue-400 transition-colors">Oscillators</h4>
                   <SentimentMeter type="buy" label="Neutral Trend" />
                 </div>
 
-                <div className="rounded-3xl border border-red-500/20 bg-gray-900/50 p-8 shadow-2xl shadow-red-500/5 ring-1 ring-red-500/10 hover:bg-white/[0.02] transition-all group relative overflow-hidden">
+                <div className="rounded-3xl border border-red-500/20 bg-gray-900/50 p-4 sm:p-8 shadow-2xl shadow-red-500/5 ring-1 ring-red-500/10 hover:bg-white/[0.02] transition-all group relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <TrendingUp className="h-12 w-12 text-red-500 rotate-180" />
                   </div>
-                  <h4 className="mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 group-hover:text-red-500 transition-colors">Summary</h4>
+                  <h4 className="mb-4 sm:mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 group-hover:text-red-500 transition-colors">Summary</h4>
                   <SentimentMeter type="strong-sell" label="Strong Resistance" />
                 </div>
 
-                <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-8 shadow-xl hover:bg-white/[0.02] transition-all group">
-                  <h4 className="mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-red-400 transition-colors">Moving Averages</h4>
+                <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-8 shadow-xl hover:bg-white/[0.02] transition-all group overflow-hidden">
+                  <h4 className="mb-4 sm:mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-red-400 transition-colors">Moving Averages</h4>
                   <SentimentMeter type="sell" label="Bearish Cross" />
                 </div>
               </div>

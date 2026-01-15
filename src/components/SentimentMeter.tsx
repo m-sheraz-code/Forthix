@@ -18,8 +18,8 @@ export default function SentimentMeter({ type, label }: SentimentMeterProps) {
     const config = SENTIMENT_CONFIG[type];
 
     return (
-        <div className="flex flex-col items-center justify-center p-2">
-            <div className="relative h-28 w-48 overflow-visible flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center p-2 w-full">
+            <div className="relative h-28 w-full max-w-[12rem] overflow-visible flex items-center justify-center">
                 <svg viewBox="0 0 100 60" className="w-full h-full overflow-visible">
                     {/* Background Arc Shadow */}
                     <path
