@@ -205,6 +205,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             }
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           }}
+          minTickGap={30}
           axisLine={false}
           tickLine={false}
         />

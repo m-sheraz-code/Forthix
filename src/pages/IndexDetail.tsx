@@ -16,7 +16,7 @@ export default function IndexDetail() {
   const [relatedIndices, setRelatedIndices] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const timeRanges = ['1d', '5d', '1m', '6m', 'ytd', '1y', '5y', 'max'];
+  const timeRanges = ['1d', '5d', '1m', '3m', '6m', 'ytd', '1y', '5y', 'all'];
 
   useEffect(() => {
     async function loadData() {
