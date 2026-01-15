@@ -104,9 +104,9 @@ export default function IndexDetail() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-2xl backdrop-blur-xl mb-8">
-              <div className="mb-6 flex items-center justify-between">
-                <div className="flex bg-white/5 p-1 rounded-xl">
+            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-6 shadow-2xl backdrop-blur-xl mb-8">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <div className="flex bg-white/5 p-1 rounded-xl overflow-x-auto scrollbar-hide max-w-full">
                   {timeRanges.map((range) => (
                     <button
                       key={range}
