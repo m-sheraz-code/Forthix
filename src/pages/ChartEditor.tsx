@@ -30,6 +30,7 @@ import {
     X,
     Trash2,
     CandlestickChart,
+    RotateCcw,
 } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
 import { getIndexData, getMarketSummary, Quote } from '../lib/api';
@@ -62,6 +63,26 @@ export default function ChartEditor() {
     const { symbol } = useParams();
     const navigate = useNavigate();
     const canvasRef = useRef<SVGSVGElement>(null);
+
+    // Mobile landscape detection
+    const [isPortrait, setIsPortrait] = useState(false);
+
+    useEffect(() => {
+        const checkOrientation = () => {
+            const mobile = window.innerWidth < 768;
+            const portrait = window.innerHeight > window.innerWidth;
+            setIsPortrait(mobile && portrait);
+        };
+
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+
+        return () => {
+            window.removeEventListener('resize', checkOrientation);
+            window.removeEventListener('orientationchange', checkOrientation);
+        };
+    }, []);
 
     // State
     const [activeTool, setActiveTool] = useState('cursor');
@@ -506,6 +527,16 @@ export default function ChartEditor() {
 
     return (
         <div className="min-h-screen bg-brand-dark flex flex-col">
+            {/* Mobile Portrait Mode Overlay */}
+            {isPortrait && (
+                <div className="fixed inset-0 bg-brand-dark z-50 flex flex-col items-center justify-center p-8">
+                    <RotateCcw className="h-16 w-16 text-blue-500 mb-6 animate-pulse" />
+                    <h2 className="text-2xl font-bold text-white mb-2 text-center">Rotate Your Device</h2>
+                    <p className="text-gray-400 text-center text-sm max-w-xs">
+                        For the best charting experience, please rotate your device to landscape mode.
+                    </p>
+                </div>
+            )}
             {/* Top Toolbar */}
             <div className="h-12 border-b border-white/5 bg-gray-900/50 flex items-center px-2 gap-1 relative z-30">
                 {/* Left section - Symbol and controls */}
