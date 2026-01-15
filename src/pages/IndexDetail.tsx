@@ -104,38 +104,40 @@ export default function IndexDetail() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-6 shadow-2xl backdrop-blur-xl mb-8 overflow-hidden max-w-full">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <div className="flex bg-white/5 p-1 rounded-xl overflow-x-auto scrollbar-hide max-w-full flex-nowrap">
-                  {timeRanges.map((range) => (
-                    <button
-                      key={range}
-                      onClick={() => setTimeRange(range)}
-                      className={`rounded-lg px-4 py-1.5 text-xs font-bold uppercase transition-all ${timeRange === range
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                        : 'text-gray-500 hover:text-gray-300'
-                        }`}
-                    >
-                      {range}
-                    </button>
-                  ))}
+            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-6 shadow-2xl backdrop-blur-xl mb-8 overflow-x-auto scrollbar-hide">
+              <div className="min-w-[700px] sm:min-w-0">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div className="flex bg-white/5 p-1 rounded-xl scrollbar-hide flex-nowrap">
+                    {timeRanges.map((range) => (
+                      <button
+                        key={range}
+                        onClick={() => setTimeRange(range)}
+                        className={`rounded-lg px-4 py-1.5 text-xs font-bold uppercase transition-all ${timeRange === range
+                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                          : 'text-gray-500 hover:text-gray-300'
+                          }`}
+                      >
+                        {range}
+                      </button>
+                    ))}
+                  </div>
+                  <Link
+                    to={`/chart/${symbol}`}
+                    className="rounded-xl bg-white/5 p-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Link>
                 </div>
-                <Link
-                  to={`/chart/${symbol}`}
-                  className="rounded-xl bg-white/5 p-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </Link>
-              </div>
 
-              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 w-full max-w-full">
-                <div className="h-[400px] sm:h-[450px] min-w-[600px] sm:min-w-0 relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
-                  <PriceChart data={data.chartData} isPositive={isPositive} />
-                  {isLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-                    </div>
-                  )}
+                <div className="scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 w-full max-w-full">
+                  <div className="h-[400px] sm:h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
+                    <PriceChart data={data.chartData} isPositive={isPositive} />
+                    {isLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
