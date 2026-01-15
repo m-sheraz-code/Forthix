@@ -128,13 +128,15 @@ export default function IndexDetail() {
                 </Link>
               </div>
 
-              <div className="h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
-                <PriceChart data={data.chartData} isPositive={isPositive} />
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-                  </div>
-                )}
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="h-[400px] sm:h-[450px] min-w-[600px] sm:min-w-0 relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
+                  <PriceChart data={data.chartData} isPositive={isPositive} />
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
