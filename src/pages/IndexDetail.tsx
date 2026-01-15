@@ -131,7 +131,7 @@ export default function IndexDetail() {
 
                 <div className="scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 w-full max-w-full">
                   <div className="h-[400px] sm:h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
-                    <PriceChart data={data.chartData} isPositive={isPositive} />
+                    <PriceChart data={data.chartData} isPositive={isPositive} timeRange={timeRange} />
                     {isLoading && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Loader2 className="h-10 w-10 animate-spin text-blue-500" />

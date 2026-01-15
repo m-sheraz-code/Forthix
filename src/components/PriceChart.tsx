@@ -24,6 +24,7 @@ interface PriceChartProps {
   data: PricePoint[];
   isPositive: boolean;
   chartType?: string;
+  timeRange?: string;
 }
 
 // Custom Candlestick Shape Component
@@ -107,7 +108,7 @@ const CandlestickShape = (props: any) => {
   );
 };
 
-export default function PriceChart({ data, isPositive, chartType = 'area' }: PriceChartProps) {
+export default function PriceChart({ data, isPositive, chartType = 'area', timeRange = '1m' }: PriceChartProps) {
   // Prep data for Recharts range bars
   const chartData = data.map(d => {
     const o = d.open ?? d.value;
@@ -194,7 +195,16 @@ export default function PriceChart({ data, isPositive, chartType = 'area' }: Pri
         <XAxis
           dataKey="time"
           tick={{ fill: '#6b7280', fontSize: 10 }}
-          tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          tickFormatter={(value) => {
+            const date = new Date(value);
+            if (timeRange === '1d') {
+              return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            if (timeRange === '5d') {
+              return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getHours().toString().padStart(2, '0')}:00`;
+            }
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }}
           axisLine={false}
           tickLine={false}
         />
