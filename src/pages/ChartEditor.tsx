@@ -785,9 +785,9 @@ export default function ChartEditor() {
 
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                {/* Left Sidebar - Drawing Tools (hidden on mobile) */}
-                <div className="hidden md:flex w-12 border-r border-white/5 bg-gray-900/30 flex-col py-2">
+            <div className="flex-1 flex overflow-hidden">
+                {/* Left Sidebar - Drawing Tools */}
+                <div className="w-12 border-r border-white/5 bg-gray-900/30 flex flex-col py-2">
                     {drawingTools.map((tool) => (
                         <button
                             key={tool.id}
@@ -946,8 +946,8 @@ export default function ChartEditor() {
                     </div>
                 </div>
 
-                {/* Right Sidebar - Watchlist (bottom on mobile) */}
-                <div className="w-full md:w-72 h-48 md:h-auto border-t md:border-t-0 md:border-l border-white/5 bg-gray-900/30 flex flex-col overflow-hidden order-last md:order-none">
+                {/* Right Sidebar - Watchlist */}
+                <div className="w-72 border-l border-white/5 bg-gray-900/30 flex flex-col">
                     {/* Watchlist Header */}
                     <div className="p-3 border-b border-white/5 flex items-center justify-between">
                         <button className="flex items-center gap-2 text-sm font-medium text-white hover:text-blue-400 transition-colors">
