@@ -59,7 +59,7 @@ export default function IndexDetail() {
   const isPositive = data.change >= 0;
 
   return (
-    <div className="min-h-screen bg-brand-dark">
+    <div className="min-h-screen overflow-x-hidden bg-brand-dark">
       <div className="border-b border-white/5 bg-brand-dark py-4">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-2 flex items-center gap-2 text-sm text-gray-400">
