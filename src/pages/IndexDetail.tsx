@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { TrendingUp, Maximize2, ChevronDown, Loader2 } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
 import { getIndexData, getStockData, getMarketSummary, Quote } from '../lib/api';
+import { getTechnicalAnalysis } from '../lib/indicators';
 import SentimentMeter from '../components/SentimentMeter';
 
 export default function IndexDetail() {
@@ -57,6 +58,10 @@ export default function IndexDetail() {
   };
 
   const isPositive = data.change >= 0;
+
+  const technicalAnalysis = useMemo(() => {
+    return getTechnicalAnalysis(data.chartData);
+  }, [data.chartData]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-brand-dark">
@@ -166,7 +171,7 @@ export default function IndexDetail() {
                 <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-8 shadow-xl hover:bg-white/[0.02] transition-all group overflow-hidden w-full">
                   <h4 className="mb-4 sm:mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-blue-400 transition-colors">Oscillators</h4>
                   <div className="flex justify-center w-full">
-                    <SentimentMeter type="buy" label="Neutral Trend" />
+                    <SentimentMeter type={technicalAnalysis.oscillators.type} label={technicalAnalysis.oscillators.label} />
                   </div>
                 </div>
 
@@ -176,14 +181,14 @@ export default function IndexDetail() {
                   </div>
                   <h4 className="mb-4 sm:mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 group-hover:text-red-500 transition-colors">Summary</h4>
                   <div className="flex justify-center w-full">
-                    <SentimentMeter type="strong-sell" label="Strong Resistance" />
+                    <SentimentMeter type={technicalAnalysis.summary.type} label={technicalAnalysis.summary.label} />
                   </div>
                 </div>
 
                 <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-8 shadow-xl hover:bg-white/[0.02] transition-all group overflow-hidden w-full">
                   <h4 className="mb-4 sm:mb-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 group-hover:text-red-400 transition-colors">Moving Averages</h4>
                   <div className="flex justify-center w-full">
-                    <SentimentMeter type="sell" label="Bearish Cross" />
+                    <SentimentMeter type={technicalAnalysis.movingAverages.type} label={technicalAnalysis.movingAverages.label} />
                   </div>
                 </div>
               </div>
