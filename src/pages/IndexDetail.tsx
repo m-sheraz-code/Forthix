@@ -128,7 +128,7 @@ export default function IndexDetail() {
                 </Link>
               </div>
 
-              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="overflow-x-scroll scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                 <div className="h-[400px] sm:h-[450px] min-w-[600px] sm:min-w-0 relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
                   <PriceChart data={data.chartData} isPositive={isPositive} />
                   {isLoading && (
