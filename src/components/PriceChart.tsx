@@ -197,10 +197,12 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
           tick={{ fill: '#6b7280', fontSize: 10 }}
           tickFormatter={(value) => {
             const date = new Date(value);
-            if (timeRange === '1d') {
-              return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const normalizedRange = timeRange.toLowerCase();
+            if (normalizedRange === '1d') {
+              // Show only the hour in 12-hour format (12, 1, 2, 3...)
+              return (date.getHours() % 12 || 12).toString();
             }
-            if (timeRange === '5d') {
+            if (normalizedRange === '5d') {
               return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getHours().toString().padStart(2, '0')}:00`;
             }
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
