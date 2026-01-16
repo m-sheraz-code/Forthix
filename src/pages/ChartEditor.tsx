@@ -259,58 +259,81 @@ export default function ChartEditor() {
         chartData: []
     };
 
-    // Zoom Handler
-    const handleWheel = useCallback((e: React.WheelEvent) => {
-        // Prevent default browser scrolling
-        if (e.cancelable) e.preventDefault();
+    // Native Wheel/Zoom Handler to properly block default browser behavior
+    useEffect(() => {
+        const element = canvasRef.current;
+        if (!element) return;
 
-        // Rate limit zoom events slightly
-        const now = Date.now();
-        if (now - lastWheelTime.current < 20) return;
-        lastWheelTime.current = now;
+        const handleNativeWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-        const currentData = data.chartData;
-        if (!currentData || currentData.length === 0) return;
+            // Rate limit
+            const now = Date.now();
+            if (now - lastWheelTime.current < 20) return;
+            lastWheelTime.current = now;
 
-        const range = visibleRange || { start: 0, end: currentData.length };
-        const rangeSize = range.end - range.start;
-        const zoomFactor = 0.1; // Zoom 10% each tick
-        const zoomAmount = Math.max(1, Math.round(rangeSize * zoomFactor));
+            const currentData = data.chartData;
+            if (!currentData || currentData.length === 0) return;
 
-        if (e.deltaY < 0) {
-            // ZOOM IN
-            const newSize = rangeSize - zoomAmount * 2; // Shrink from both sides
-            if (newSize < 10) { // Safety threshold, if too small switch range
-                const currentIndex = getTimeRangeIndex(timeRange);
-                if (currentIndex > 0) {
-                    setTimeRange(timeRanges[currentIndex - 1]);
-                    return; // Let effect reload data
+            // Use ref-like access to latest state via a mutable object or functional updates if needed.
+            // However, inside a raw event listener, we need access to the LATEST state.
+            // A common pattern is to use a ref to hold the latest sensitive state, or simple re-attach listener on state change.
+            // Re-attaching is safer for correctness here, although slightly more expensive.
+            // Given the complexity, we will rely on the dependency array to re-bind the listener when range changes.
+
+            // NOTE: To avoid stale closures we either need dependencies or Refs. 
+            // We will use the dependencies approach for simplicity as performance impact is negligible for this frequency.
+
+            // ...BUT we must duplicate the logic here because we removed the useCallback.
+
+            const range = visibleRange || { start: 0, end: currentData.length };
+            const rangeSize = range.end - range.start;
+            const zoomFactor = 0.1;
+            const zoomAmount = Math.max(1, Math.round(rangeSize * zoomFactor));
+
+            if (e.deltaY < 0) {
+                // ZOOM IN
+                const newSize = rangeSize - zoomAmount * 2;
+                if (newSize < 10) {
+                    const currentIndex = getTimeRangeIndex(timeRange);
+                    if (currentIndex > 0) {
+                        setTimeRange(timeRanges[currentIndex - 1]);
+                        return;
+                    }
+                } else {
+                    const newStart = Math.min(Math.max(0, range.start + zoomAmount), currentData.length - newSize);
+                    const newEnd = Math.max(newStart + newSize, Math.min(currentData.length, range.end - zoomAmount));
+                    setVisibleRange({ start: newStart, end: newEnd });
                 }
             } else {
-                // Focus zoom on center (simplified)
-                const newStart = Math.min(Math.max(0, range.start + zoomAmount), currentData.length - newSize);
-                const newEnd = Math.max(newStart + newSize, Math.min(currentData.length, range.end - zoomAmount));
-                setVisibleRange({ start: newStart, end: newEnd });
-            }
-        } else {
-            // ZOOM OUT
-            const newSize = rangeSize + zoomAmount * 2;
-            if (newSize >= currentData.length) {
-                // If already showing full data, switch to broader range
-                const currentIndex = getTimeRangeIndex(timeRange);
-                if (currentIndex < timeRanges.length - 1) {
-                    setTimeRange(timeRanges[currentIndex + 1]);
-                    return;
+                // ZOOM OUT
+                const newSize = rangeSize + zoomAmount * 2;
+                if (newSize >= currentData.length) {
+                    const currentIndex = getTimeRangeIndex(timeRange);
+                    if (currentIndex < timeRanges.length - 1) {
+                        setTimeRange(timeRanges[currentIndex + 1]);
+                        return;
+                    }
+                    setVisibleRange({ start: 0, end: currentData.length });
+                } else {
+                    const newStart = Math.max(0, range.start - zoomAmount);
+                    const newEnd = Math.min(currentData.length, range.end + zoomAmount);
+                    setVisibleRange({ start: newStart, end: newEnd });
                 }
-                // Else just show full range
-                setVisibleRange({ start: 0, end: currentData.length });
-            } else {
-                const newStart = Math.max(0, range.start - zoomAmount);
-                const newEnd = Math.min(currentData.length, range.end + zoomAmount);
-                setVisibleRange({ start: newStart, end: newEnd });
             }
-        }
+        };
+
+        // Attach with { passive: false } is CRITICAL to allow preventDefault
+        element.addEventListener('wheel', handleNativeWheel, { passive: false });
+
+        return () => {
+            element.removeEventListener('wheel', handleNativeWheel);
+        };
     }, [data.chartData, visibleRange, timeRange]);
+
+    // Zoom Handler
+
 
 
     // Drawing handlers
@@ -1019,7 +1042,7 @@ export default function ChartEditor() {
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
                             onMouseLeave={handleMouseUp}
-                            onWheel={handleWheel}
+
                         >
                             <defs>
                                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
