@@ -131,10 +131,23 @@ export default function LandingPage() {
               </form>
 
               {/* Suggestions Dropdown */}
-              {showSuggestions && suggestions.length > 0 && (
+              {showSuggestions && (searchQuery.trim().length > 0) && (
                 <div className="absolute left-2 right-2 top-full mt-2 overflow-hidden rounded-2xl border border-white/10 bg-gray-900/80 p-2 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                   <div className="max-h-[300px] overflow-y-auto scrollbar-hide">
-                    {suggestions.map((item) => (
+                    {isSearching && (
+                      <div className="p-4 text-center text-gray-400">
+                        <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-blue-500" />
+                        <p className="text-sm">Searching markets...</p>
+                      </div>
+                    )}
+
+                    {!isSearching && suggestions.length === 0 && (
+                      <div className="p-4 text-center text-gray-400">
+                        <p className="text-sm">No results found for "{searchQuery}"</p>
+                      </div>
+                    )}
+
+                    {!isSearching && suggestions.map((item) => (
                       <button
                         key={item.symbol}
                         onClick={() => {

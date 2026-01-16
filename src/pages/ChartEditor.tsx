@@ -759,7 +759,7 @@ export default function ChartEditor() {
                                     autoFocus
                                 />
                             </div>
-                            <div className="max-h-64 overflow-y-auto">
+                            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                                 {isSearchingSymbols && (
                                     <div className="p-4 text-center text-gray-500 text-xs">
                                         <Loader2 className="h-4 w-4 animate-spin mx-auto mb-1" />
