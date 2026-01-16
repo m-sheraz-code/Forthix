@@ -858,7 +858,12 @@ export default function ChartEditor() {
                             </div>
                         )}
                         <div className="h-full w-full p-4">
-                            <PriceChart data={data.chartData} isPositive={isPositive} chartType={chartType} />
+                            <PriceChart
+                                data={data.chartData}
+                                isPositive={isPositive}
+                                chartType={chartType}
+                                timeRange={timeRange}
+                            />
                         </div>
 
                         {/* Drawing Canvas Overlay */}
