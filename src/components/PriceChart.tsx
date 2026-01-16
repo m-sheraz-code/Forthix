@@ -121,7 +121,6 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
       ...d,
       candleBody: [Math.min(o, c), Math.max(o, c)],
       candleWick: [l, h],
-      barBody: [l, h],
       color: isUp ? '#22c55e' : '#ef4444'
     };
   });
