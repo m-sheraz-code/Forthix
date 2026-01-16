@@ -199,8 +199,8 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             const date = new Date(value);
             const normalizedRange = timeRange.toLowerCase();
             if (normalizedRange === '1d') {
-              // Show only the hour in 12-hour format (12, 1, 2, 3...)
-              return (date.getHours() % 12 || 12).toString();
+              // Show hour with AM/PM
+              return date.toLocaleString('en-US', { hour: 'numeric', hour12: true });
             }
             if (normalizedRange === '5d') {
               return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getHours().toString().padStart(2, '0')}:00`;
