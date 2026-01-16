@@ -46,6 +46,7 @@ const INDEX_ICON_MAP: Record<string, string> = {
     '^VIX': 'https://s3-symbol-logo.tradingview.com/indices/vix.svg',
     '^FTSE': 'https://s3-symbol-logo.tradingview.com/indices/ftse-100.svg',
     '^N225': 'https://s3-symbol-logo.tradingview.com/indices/nikkei-225.svg',
+    '^NQ': 'https://s3-symbol-logo.tradingview.com/indices/nasdaq-100.svg',
 };
 
 export default function StockIcon({ symbol, name, size = 'md', className = '' }: StockIconProps) {
