@@ -193,7 +193,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+      <ComposedChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
         <XAxis
           dataKey="time"
@@ -220,7 +220,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
           domain={['auto', 'auto']}
           axisLine={false}
           tickLine={false}
-          width={50}
+          width={35}
         />
         <Tooltip
           contentStyle={{

@@ -108,7 +108,7 @@ export default function IndexDetail() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-3 sm:p-4 lg:p-6 shadow-2xl backdrop-blur-xl mb-6 sm:mb-8 overflow-x-auto scrollbar-hide">
+            <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-1 sm:p-4 lg:p-6 shadow-2xl backdrop-blur-xl mb-6 sm:mb-8 overflow-x-auto scrollbar-hide">
               <div className="min-w-0">
                 <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                   <div className="flex bg-white/5 p-1 rounded-lg sm:rounded-xl overflow-x-auto scrollbar-hide flex-nowrap w-full sm:w-auto">
@@ -133,7 +133,7 @@ export default function IndexDetail() {
                   </Link>
                 </div>
 
-                <div className="scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 w-full max-w-full">
+                <div className="scrollbar-hide px-0 sm:mx-0 sm:px-0 w-full max-w-full">
                   <div className="h-[300px] sm:h-[400px] lg:h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
                     <PriceChart data={data.chartData} isPositive={isPositive} timeRange={timeRange} />
                     {isLoading && (
@@ -146,7 +146,7 @@ export default function IndexDetail() {
               </div>
             </div>
 
-            <div className="mb-6 sm:mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+            <div className="mb-6 sm:mb-8 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Prev Close', value: data.previousClose?.toLocaleString() || '--' },
                 { label: 'Open', value: data.open?.toLocaleString() || '--' },
