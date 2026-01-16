@@ -74,6 +74,7 @@ async function rawFetch(url: string, asText = false): Promise<any> {
 const INDEX_SYMBOLS: Record<string, string> = {
     'SPX': '^GSPC',      // S&P 500
     'NDX': '^NDX',       // Nasdaq 100
+    'IXIC': '^IXIC',     // Nasdaq Composite
     'DJI': '^DJI',       // Dow Jones
     'N225': '^N225',     // Nikkei 225
     'FTSE': '^FTSE',     // FTSE 100
@@ -91,6 +92,7 @@ const INDEX_SYMBOLS: Record<string, string> = {
     'BVSP': '^BVSP',     // Bovespa
     'MXX': '^MXX',       // Mexico IPC
     'SSMI': '^SSMI',     // Swiss Market Index
+    'TNX': '^TNX',       // 10-Year Treasury Yield
 };
 
 // Chart range to Yahoo Finance interval mapping
@@ -478,11 +480,15 @@ export async function getMarketSummary(): Promise<{
 
     try {
         return await withCache(cacheKey, CACHE_TTL.REALTIME, async () => {
-            const majorIndices = [
-                'SPX', 'NDX', 'DJI', 'N225', 'FTSE', 'DAX', 'CAC', 'HSI', 'SSEC',
-                'RUT', 'TSX', 'AXJO', 'STOXX', 'IBEX', 'NSEI', 'BVSP', 'MXX', 'SSMI'
+            const usIndicators = [
+                'SPX',   // S&P 500
+                'IXIC',  // Nasdaq Composite
+                'DJI',   // Dow Jones
+                'RUT',   // Russell 2000
+                'VIX',   // VIX
+                'TNX'    // 10Y Yield
             ];
-            const indices = await getQuotes(majorIndices);
+            const indices = await getQuotes(usIndicators);
 
             // Fetch additional market data
             const [dxyQuote, tnxQuote] = await Promise.allSettled([

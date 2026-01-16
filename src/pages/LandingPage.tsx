@@ -5,7 +5,8 @@ import MiniChart from '../components/MiniChart';
 import { brokers } from '../data/mockData';
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
-import { getMarketSummary, MarketSummary, getIdeas, getNews, Idea } from '../lib/api';
+import { getMarketSummary, MarketSummary, getIdeas, getNews, Idea, searchStocks } from '../lib/api';
+import { useRef } from 'react';
 
 interface NewsItem {
   id: string;
@@ -23,7 +24,11 @@ export default function LandingPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [visibleStocksCount, setVisibleStocksCount] = useState(4);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -47,6 +52,35 @@ export default function LandingPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.trim().length > 0) {
+        setIsSearching(true);
+        const result = await searchStocks(searchQuery);
+        if (result.data) {
+          setSuggestions(result.data.results);
+          setShowSuggestions(true);
+        }
+        setIsSearching(false);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const featuredIndex = marketData?.indices[0] || null;
 
   return (
@@ -68,12 +102,13 @@ export default function LandingPage() {
               for traders and investors.
             </p>
 
-            <div className="mx-auto max-w-xl relative group px-2">
+            <div className="mx-auto max-w-xl relative group px-2" ref={searchRef}>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (searchQuery.trim()) {
                     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                    setShowSuggestions(false);
                   }
                 }}
                 className="relative"
@@ -82,13 +117,54 @@ export default function LandingPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
                   placeholder="Search markets, stocks, or news..."
                   className="w-full rounded-2xl bg-white/5 border border-white/10 py-3.5 px-6 pl-14 text-white placeholder-gray-500 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all shadow-2xl"
                 />
                 <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500">
-                  <Search className="h-5 w-5 group-focus-within:text-white transition-colors" />
+                  {isSearching ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                  ) : (
+                    <Search className="h-5 w-5 group-focus-within:text-white transition-colors" />
+                  )}
                 </div>
               </form>
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute left-2 right-2 top-full mt-2 overflow-hidden rounded-2xl border border-white/10 bg-gray-900/80 p-2 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                  <div className="max-h-[300px] overflow-y-auto scrollbar-hide">
+                    {suggestions.map((item) => (
+                      <button
+                        key={item.symbol}
+                        onClick={() => {
+                          navigate(`/indices/${item.symbol}`);
+                          setShowSuggestions(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all hover:bg-white/10 group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20">
+                            <TrendingUp className="h-5 w-5 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white uppercase">{item.symbol}</p>
+                            <p className="text-xs text-gray-400 line-clamp-1">{item.name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{item.exchange}</p>
+                          <div className="flex items-center gap-1 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-[10px] font-bold">VIEW</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

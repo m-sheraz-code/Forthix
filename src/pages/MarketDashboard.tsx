@@ -52,7 +52,7 @@ export default function MarketDashboard() {
         <div className="mx-auto max-w-7xl px-4">
           <h1 className="mb-3 text-5xl font-bold text-white tracking-tight">Market Outlook</h1>
           <p className="text-gray-500 text-lg font-medium">
-            Global market overview, real-time analytics and performance tracking.
+            Top US stock market indicators, real-time analytics and performance tracking.
           </p>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function MarketDashboard() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-10 flex gap-4 border-b border-white/5 overflow-x-auto no-scrollbar">
           {[
-            { id: 'indices', label: 'Market Indices', icon: Globe },
+            { id: 'indices', label: 'US Indicators', icon: Globe },
             { id: 'stocks', label: 'US Stocks', icon: BarChart2 }
           ].map((tab) => (
             <button
@@ -86,7 +86,7 @@ export default function MarketDashboard() {
             {activeTab === 'indices' && (
               <div>
                 <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white tracking-tight">Major Global Indices</h2>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Top US Stock Market Indicators</h2>
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full">
                     Real-time
                   </span>
