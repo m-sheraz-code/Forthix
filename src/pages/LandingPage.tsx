@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, TrendingUp, ArrowRight, Loader2, Plus } from 'lucide-react';
 import MiniChart from '../components/MiniChart';
-import { brokers } from '../data/mockData';
+
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
 import { getMarketSummary, MarketSummary, getIdeas, getNews, Idea, searchStocks } from '../lib/api';
-import { useRef } from 'react';
+
 
 interface NewsItem {
   id: string;
