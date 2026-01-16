@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, MessageSquare, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Mail, HelpCircle } from 'lucide-react';
 
 export default function SupportPage() {
     return (
@@ -22,31 +22,18 @@ export default function SupportPage() {
 
                 <div className="grid gap-6 sm:gap-8 mb-12">
                     {/* Contact Options */}
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-6 hover:bg-gray-900/70 transition-all">
-                            <Mail className="h-8 w-8 text-blue-500 mb-4" />
-                            <h3 className="text-lg font-bold text-white mb-2">Email Support</h3>
-                            <p className="text-sm text-gray-400 mb-4">
-                                Get in touch with our support team via email
-                            </p>
-                            <a
-                                href="mailto:support@forthix.com"
-                                className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
-                            >
-                                support@forthix.com →
-                            </a>
-                        </div>
-
-                        <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-6 hover:bg-gray-900/70 transition-all">
-                            <MessageSquare className="h-8 w-8 text-green-500 mb-4" />
-                            <h3 className="text-lg font-bold text-white mb-2">Live Chat</h3>
-                            <p className="text-sm text-gray-400 mb-4">
-                                Chat with our support team in real-time
-                            </p>
-                            <button className="text-sm font-semibold text-green-400 hover:text-green-300 transition-colors">
-                                Start Chat →
-                            </button>
-                        </div>
+                    <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-6 hover:bg-gray-900/70 transition-all">
+                        <Mail className="h-8 w-8 text-blue-500 mb-4" />
+                        <h3 className="text-lg font-bold text-white mb-2">Email Support</h3>
+                        <p className="text-sm text-gray-400 mb-4">
+                            Get in touch with our support team via email
+                        </p>
+                        <a
+                            href="mailto:support@forthix.com"
+                            className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                            support@forthix.com →
+                        </a>
                     </div>
 
                     {/* FAQ Section */}
