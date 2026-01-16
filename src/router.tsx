@@ -10,6 +10,10 @@ import NewsDetail from './pages/NewsDetail';
 import SearchResults from './pages/SearchResults';
 import ChartEditor from './pages/ChartEditor';
 import AdminPanel from './pages/AdminPanel';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import CookiesPage from './pages/CookiesPage';
+import SupportPage from './pages/SupportPage';
 
 export const router = createBrowserRouter([
   {
@@ -59,6 +63,22 @@ export const router = createBrowserRouter([
       {
         path: 'admin-panel',
         element: <AdminPanel />,
+      },
+      {
+        path: 'terms',
+        element: <TermsPage />,
+      },
+      {
+        path: 'privacy',
+        element: <PrivacyPage />,
+      },
+      {
+        path: 'cookies',
+        element: <CookiesPage />,
+      },
+      {
+        path: 'support',
+        element: <SupportPage />,
       },
     ],
   },
