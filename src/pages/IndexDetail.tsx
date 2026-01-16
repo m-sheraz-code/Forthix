@@ -66,57 +66,57 @@ export default function IndexDetail() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-brand-dark">
-      <div className="border-b border-white/5 bg-brand-dark py-4">
+      <div className="border-b border-white/5 bg-brand-dark py-3 sm:py-4">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="mb-2 flex items-center gap-2 text-sm text-gray-400">
+          <div className="mb-2 flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-400">
             <Link to="/markets" className="hover:text-white transition-colors">Markets</Link>
             <span>/</span>
             <span>{isStock ? 'Stocks' : 'Indices'}</span>
             <span>/</span>
-            <span className="text-white font-medium">{symbol}</span>
+            <span className="text-white font-medium truncate max-w-[100px] sm:max-w-none">{symbol}</span>
           </div>
 
           <div className="flex items-start justify-between">
-            <div className="flex items-start gap-4">
-              <StockIcon symbol={symbol || ''} name={data.name} size="xl" className="rounded-3xl" />
+            <div className="flex items-start gap-2 sm:gap-4">
+              <StockIcon symbol={symbol || ''} name={data.name} size="lg" className="rounded-2xl sm:rounded-3xl flex-shrink-0" />
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">{data.name}</h1>
-                <p className="text-sm font-medium text-gray-500">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">{data.name}</h1>
+                <p className="text-xs sm:text-sm font-medium text-gray-500 line-clamp-1">
                   {symbol} • {data.exchange} • {isStock ? 'Stock' : 'Index'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex items-end gap-4">
+          <div className="mt-4 sm:mt-6 flex items-end gap-2 sm:gap-4">
             <div>
-              <p className="text-5xl font-bold text-white tracking-tight">
+              <p className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
                 {isLoading ? '...' : data.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </p>
               <div className="mt-1 flex items-center gap-2">
-                <span className={`text-lg font-bold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`text-sm sm:text-base lg:text-lg font-bold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
                   {isPositive ? '+' : ''}{data.change.toFixed(2)} ({isPositive ? '+' : ''}{data.changePercent.toFixed(2)}%)
                 </span>
-                <span className="text-xs font-bold text-gray-600 uppercase tracking-widest">Today</span>
+                <span className="text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-widest">Today</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 lg:py-8">
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-6 shadow-2xl backdrop-blur-xl mb-8 overflow-x-auto scrollbar-hide">
+            <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-3 sm:p-4 lg:p-6 shadow-2xl backdrop-blur-xl mb-6 sm:mb-8 overflow-x-auto scrollbar-hide">
               <div className="min-w-[700px] sm:min-w-0">
-                <div className="mb-6 flex items-center justify-between gap-4">
-                  <div className="flex bg-white/5 p-1 rounded-xl scrollbar-hide flex-nowrap">
+                <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                  <div className="flex bg-white/5 p-1 rounded-lg sm:rounded-xl overflow-x-auto scrollbar-hide flex-nowrap w-full sm:w-auto">
                     {timeRanges.map((range) => (
                       <button
                         key={range}
                         onClick={() => setTimeRange(range)}
-                        className={`rounded-lg px-4 py-1.5 text-xs font-bold uppercase transition-all ${timeRange === range
+                        className={`rounded-lg px-2 sm:px-3 lg:px-4 py-1.5 text-[10px] sm:text-xs font-bold uppercase transition-all whitespace-nowrap ${timeRange === range
                           ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
                           : 'text-gray-500 hover:text-gray-300'
                           }`}
@@ -127,14 +127,14 @@ export default function IndexDetail() {
                   </div>
                   <Link
                     to={`/chart/${symbol}`}
-                    className="rounded-xl bg-white/5 p-2 text-gray-400 hover:text-white transition-colors"
+                    className="rounded-lg sm:rounded-xl bg-white/5 p-2 text-gray-400 hover:text-white transition-colors flex-shrink-0"
                   >
                     <Maximize2 className="h-4 w-4" />
                   </Link>
                 </div>
 
                 <div className="scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 w-full max-w-full">
-                  <div className="h-[400px] sm:h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
+                  <div className="h-[300px] sm:h-[400px] lg:h-[450px] relative transition-opacity duration-300" style={{ opacity: isLoading ? 0.3 : 1 }}>
                     <PriceChart data={data.chartData} isPositive={isPositive} timeRange={timeRange} />
                     {isLoading && (
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -146,23 +146,23 @@ export default function IndexDetail() {
               </div>
             </div>
 
-            <div className="mb-8 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <div className="mb-6 sm:mb-8 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Prev Close', value: data.previousClose?.toLocaleString() || '--' },
                 { label: 'Open', value: data.open?.toLocaleString() || '--' },
                 { label: 'Volume', value: data.volume?.toLocaleString() || '--' },
                 { label: 'Exchange', value: data.exchange || '--' },
               ].map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-white/5 bg-gray-900/50 p-5 transition-all hover:border-white/10 group">
+                <div key={stat.label} className="rounded-xl sm:rounded-2xl border border-white/5 bg-gray-900/50 p-3 sm:p-4 lg:p-5 transition-all hover:border-white/10 group">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 group-hover:text-gray-400">{stat.label}</p>
-                  <p className="mt-2 text-lg font-bold text-white">{stat.value}</p>
+                  <p className="mt-1 sm:mt-2 text-base sm:text-lg font-bold text-white">{stat.value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mb-12">
-              <h3 className="mb-8 text-xl font-bold text-white flex items-center gap-4">
-                <div className="h-8 w-1 bg-blue-500 rounded-full" />
+            <div className="mb-8 sm:mb-12">
+              <h3 className="mb-6 sm:mb-8 text-lg sm:text-xl font-bold text-white flex items-center gap-2 sm:gap-4">
+                <div className="h-6 sm:h-8 w-1 bg-blue-500 rounded-full" />
                 Market Analysis
                 <div className="h-px flex-1 bg-white/5" />
               </h3>
@@ -194,33 +194,33 @@ export default function IndexDetail() {
             </div>
           </div>
 
-          <div className="space-y-8">
-            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-xl">
-              <h3 className="mb-4 text-lg font-bold text-white">About {data.name}</h3>
-              <p className="text-sm leading-relaxed text-gray-400">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+            <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-5 lg:p-6 shadow-xl">
+              <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-bold text-white">About {data.name}</h3>
+              <p className="text-xs sm:text-sm leading-relaxed text-gray-400">
                 Live market data for {data.name} ({symbol}). This index/stock is part of the global trading market.
                 Keep track of performance, volume, and real-time updates through Forthix's advanced charting system.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-xl">
-              <h3 className="mb-4 text-lg font-bold text-white">Related Markets</h3>
-              <div className="space-y-3">
+            <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-5 lg:p-6 shadow-xl">
+              <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-bold text-white">Related Markets</h3>
+              <div className="space-y-2 sm:space-y-3">
                 {relatedIndices.slice(0, 4).map((idx: Quote) => (
                   <Link
                     key={idx.symbol}
                     to={`/indices/${idx.symbol}`}
-                    className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-3 transition-all hover:bg-white/10"
+                    className="flex items-center justify-between rounded-lg sm:rounded-xl border border-white/5 bg-white/5 p-2.5 sm:p-3 transition-all hover:bg-white/10"
                   >
-                    <div className="flex items-center gap-3">
-                      <StockIcon symbol={idx.symbol} name={idx.name} size="md" />
-                      <div>
-                        <p className="text-sm font-bold text-white uppercase">{idx.symbol}</p>
-                        <p className="text-xs text-gray-500">{idx.name}</p>
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <StockIcon symbol={idx.symbol} name={idx.name} size="sm" className="flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-bold text-white uppercase truncate">{idx.symbol}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 truncate">{idx.name}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-white">${idx.price.toLocaleString()}</p>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs sm:text-sm font-bold text-white">${idx.price.toLocaleString()}</p>
                       <p className={`text-[10px] font-bold ${idx.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                         {idx.change >= 0 ? '+' : ''}{idx.changePercent.toFixed(2)}%
                       </p>
@@ -230,9 +230,9 @@ export default function IndexDetail() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 shadow-xl">
-              <h3 className="mb-6 text-lg font-bold text-white">FAQ</h3>
-              <div className="space-y-3">
+            <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-5 lg:p-6 shadow-xl">
+              <h3 className="mb-4 sm:mb-6 text-base sm:text-lg font-bold text-white">FAQ</h3>
+              <div className="space-y-2 sm:space-y-3">
                 {[
                   {
                     q: `What is ${data.name} price today?`,
@@ -243,16 +243,16 @@ export default function IndexDetail() {
                     a: 'Our technical analysis indicators are currently suggesting a sell signal for the short term based on moving averages. Always perform your own research.'
                   }
                 ].map((faq, i) => (
-                  <div key={i} className="rounded-2xl border border-white/5 bg-white/5 overflow-hidden transition-all">
+                  <div key={i} className="rounded-xl sm:rounded-2xl border border-white/5 bg-white/5 overflow-hidden transition-all">
                     <button
                       onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                      className="flex w-full items-center justify-between p-4 text-left"
+                      className="flex w-full items-center justify-between p-3 sm:p-4 text-left"
                     >
-                      <span className="text-xs font-bold text-white pr-4">{faq.q}</span>
-                      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-300 ${openFaq === i ? 'rotate-180' : ''}`} />
+                      <span className="text-[11px] sm:text-xs font-bold text-white pr-2 sm:pr-4">{faq.q}</span>
+                      <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-500 transition-transform duration-300 flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                     </button>
                     <div
-                      className={`px-4 pb-4 text-xs leading-loose text-gray-500 transition-all duration-300 ${openFaq === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+                      className={`px-3 sm:px-4 pb-3 sm:pb-4 text-[11px] sm:text-xs leading-relaxed text-gray-500 transition-all duration-300 ${openFaq === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
                         }`}
                     >
                       <p className="pt-2 border-t border-white/5">{faq.a}</p>
