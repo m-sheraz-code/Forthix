@@ -102,7 +102,7 @@ export default function LandingPage() {
               for traders and investors.
             </p>
 
-            <div className="mx-auto max-w-xl relative group px-2 z-50" ref={searchRef}>
+            <div className="mx-auto max-w-xl relative group px-2 z-[60]" ref={searchRef}>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -132,8 +132,8 @@ export default function LandingPage() {
 
               {/* Suggestions Dropdown */}
               {showSuggestions && (searchQuery.trim().length > 0) && (
-                <div className="absolute left-2 right-2 top-full mt-2 rounded-2xl border border-white/10 bg-gray-900/80 p-2 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                  <div className="max-h-[380px] overflow-y-auto custom-scrollbar">
+                <div className="absolute left-2 right-2 top-full mt-2 rounded-2xl border border-white/10 bg-gray-900/90 p-2 shadow-2xl backdrop-blur-2xl z-[70]">
+                  <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
                     {isSearching && (
                       <div className="p-4 text-center text-gray-400">
                         <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-blue-500" />
