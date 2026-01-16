@@ -59,6 +59,27 @@ const chartTypes = [
     { id: 'bar', name: 'Bar', icon: BarChart3 },
 ];
 
+// Helper function for eraser
+const pointToLineDistance = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+    if (lenSq !== 0) param = dot / lenSq;
+
+    let xx, yy;
+    if (param < 0) { xx = x1; yy = y1; }
+    else if (param > 1) { xx = x2; yy = y2; }
+    else { xx = x1 + param * C; yy = y1 + param * D; }
+
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
 export default function ChartEditor() {
     const { symbol } = useParams();
     const navigate = useNavigate();
@@ -228,6 +249,16 @@ export default function ChartEditor() {
         return timeRanges.findIndex(r => r.toUpperCase() === range.toUpperCase());
     };
 
+    // Derived data state
+    const data = indexData || {
+        symbol: symbol || 'SPX',
+        name: 'Loading...',
+        price: 0,
+        change: 0,
+        changePercent: 0,
+        chartData: []
+    };
+
     // Zoom Handler
     const handleWheel = useCallback((e: React.WheelEvent) => {
         // Prevent default browser scrolling
@@ -281,6 +312,89 @@ export default function ChartEditor() {
         }
     }, [data.chartData, visibleRange, timeRange]);
 
+
+    // Drawing handlers
+    const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+        if (lockDrawings || activeTool === 'cursor' || activeTool === 'crosshair') return;
+
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (activeTool === 'text') {
+            setTextInput({ show: true, x, y, value: '' });
+            return;
+        }
+
+        if (activeTool === 'eraser') {
+            // Find and remove drawing at this position
+            const clickedObj = drawing.objects.find(obj => {
+                // Handle text objects (single point)
+                if (obj.type === 'text') {
+                    const dist = Math.sqrt(
+                        Math.pow(x - obj.points[0].x, 2) +
+                        Math.pow(y - obj.points[0].y, 2)
+                    );
+                    return dist < 30; // Larger hit area for text
+                }
+                // Handle horizontal lines
+                if (obj.type === 'horizontal') {
+                    return Math.abs(y - obj.points[0].y) < 10;
+                }
+                // Handle vertical lines
+                if (obj.type === 'vertical') {
+                    return Math.abs(x - obj.points[0].x) < 10;
+                }
+                // Handle two-point objects (lines, rectangles, etc.)
+                if (obj.points.length >= 2) {
+                    const [p1, p2] = obj.points;
+                    const distance = pointToLineDistance(x, y, p1.x, p1.y, p2.x, p2.y);
+                    return distance < 10;
+                }
+                // Handle brush objects (multiple points)
+                if (obj.type === 'brush' && obj.points.length > 0) {
+                    return obj.points.some(p => {
+                        const dist = Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
+                        return dist < 10;
+                    });
+                }
+                return false;
+            });
+            if (clickedObj) {
+                drawing.removeObject(clickedObj.id);
+            }
+            return;
+        }
+
+        drawing.startDrawing(activeTool as DrawingObject['type'], x, y);
+    }, [activeTool, lockDrawings, drawing]);
+
+    const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const preview = drawing.continueDrawing(x, y);
+        if (preview) {
+            setCurrentDrawingPreview({ ...preview });
+        }
+    }, [drawing]);
+
+    const handleCanvasMouseUp = useCallback(() => {
+        drawing.endDrawing();
+        setCurrentDrawingPreview(null);
+    }, [drawing]);
+
+    const handleTextSubmit = () => {
+        if (textInput.value.trim()) {
+            drawing.addTextAnnotation(textInput.x, textInput.y, textInput.value);
+        }
+        setTextInput({ show: false, x: 0, y: 0, value: '' });
+    };
 
     // Pan Handlers
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -340,109 +454,7 @@ export default function ChartEditor() {
     }, [handleCanvasMouseUp]);
 
 
-    // Drawing handlers
-    const handleCanvasMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
-        if (lockDrawings || activeTool === 'cursor' || activeTool === 'crosshair') return;
 
-        const rect = canvasRef.current?.getBoundingClientRect();
-        if (!rect) return;
-
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        if (activeTool === 'text') {
-            setTextInput({ show: true, x, y, value: '' });
-            return;
-        }
-
-        if (activeTool === 'eraser') {
-            // Find and remove drawing at this position
-            const clickedObj = drawing.objects.find(obj => {
-                // Handle text objects (single point)
-                if (obj.type === 'text') {
-                    const dist = Math.sqrt(
-                        Math.pow(x - obj.points[0].x, 2) +
-                        Math.pow(y - obj.points[0].y, 2)
-                    );
-                    return dist < 30; // Larger hit area for text
-                }
-                // Handle horizontal lines
-                if (obj.type === 'horizontal') {
-                    return Math.abs(y - obj.points[0].y) < 10;
-                }
-                // Handle vertical lines
-                if (obj.type === 'vertical') {
-                    return Math.abs(x - obj.points[0].x) < 10;
-                }
-                // Handle two-point objects (lines, rectangles, etc.)
-                if (obj.points.length >= 2) {
-                    const [p1, p2] = obj.points;
-                    const distance = pointToLineDistance(x, y, p1.x, p1.y, p2.x, p2.y);
-                    return distance < 10;
-                }
-                // Handle brush objects (multiple points)
-                if (obj.type === 'brush' && obj.points.length > 0) {
-                    return obj.points.some(p => {
-                        const dist = Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
-                        return dist < 10;
-                    });
-                }
-                return false;
-            });
-            if (clickedObj) {
-                drawing.removeObject(clickedObj.id);
-            }
-            return;
-        }
-
-        drawing.startDrawing(activeTool as DrawingObject['type'], x, y);
-    }, [activeTool, lockDrawings, drawing]);
-
-    const handleCanvasMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
-        const rect = canvasRef.current?.getBoundingClientRect();
-        if (!rect) return;
-
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const preview = drawing.continueDrawing(x, y);
-        if (preview) {
-            setCurrentDrawingPreview({ ...preview });
-        }
-    }, [drawing]);
-
-    const handleCanvasMouseUp = useCallback(() => {
-        drawing.endDrawing();
-        setCurrentDrawingPreview(null);
-    }, [drawing]);
-
-    const handleTextSubmit = () => {
-        if (textInput.value.trim()) {
-            drawing.addTextAnnotation(textInput.x, textInput.y, textInput.value);
-        }
-        setTextInput({ show: false, x: 0, y: 0, value: '' });
-    };
-
-    // Helper function for eraser
-    const pointToLineDistance = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => {
-        const A = px - x1;
-        const B = py - y1;
-        const C = x2 - x1;
-        const D = y2 - y1;
-        const dot = A * C + B * D;
-        const lenSq = C * C + D * D;
-        let param = -1;
-        if (lenSq !== 0) param = dot / lenSq;
-
-        let xx, yy;
-        if (param < 0) { xx = x1; yy = y1; }
-        else if (param > 1) { xx = x2; yy = y2; }
-        else { xx = x1 + param * C; yy = y1 + param * D; }
-
-        const dx = px - xx;
-        const dy = py - yy;
-        return Math.sqrt(dx * dx + dy * dy);
-    };
 
     // Save function
     const handleSave = () => {
@@ -640,14 +652,7 @@ export default function ChartEditor() {
         }
     };
 
-    const data = indexData || {
-        symbol: symbol || 'SPX',
-        name: 'Loading...',
-        price: 0,
-        change: 0,
-        changePercent: 0,
-        chartData: []
-    };
+
 
     // Calculate visible data
     const displayData = visibleRange && data.chartData.length > 0
@@ -993,7 +998,7 @@ export default function ChartEditor() {
                         )}
                         <div className="h-full w-full p-4">
                             <PriceChart
-                                data={data.chartData}
+                                data={finalData}
                                 isPositive={isPositive}
                                 chartType={chartType}
                                 timeRange={timeRange}
@@ -1014,6 +1019,7 @@ export default function ChartEditor() {
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
                             onMouseLeave={handleMouseUp}
+                            onWheel={handleWheel}
                         >
                             <defs>
                                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">

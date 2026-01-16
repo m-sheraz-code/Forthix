@@ -40,7 +40,7 @@ const CandlestickShape = (props: any) => {
   const candleLow = low ?? Math.min(candleOpen, candleClose);
 
   // Calculate positions
-  const yScale = height / (Math.abs((payload.candleBody?.[1] || candleClose) - (payload.candleBody?.[0] || candleOpen)) || 1);
+
   const centerX = x + width / 2;
 
   // Wick dimensions
