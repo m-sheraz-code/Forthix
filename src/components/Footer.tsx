@@ -66,10 +66,10 @@ export default function Footer() {
           {/* Copyright & Legal */}
           <div className="flex flex-col items-center gap-6 pt-8 border-t border-gray-900 w-full">
             <div className="flex flex-wrap justify-center gap-6 text-xs font-medium text-gray-500 uppercase tracking-widest">
-              <a href="#" className="hover:text-gray-300 transition-colors">Terms</a>
-              <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-gray-300 transition-colors">Cookies</a>
-              <a href="#" className="hover:text-gray-300 transition-colors">Support</a>
+              <Link to="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
+              <Link to="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
+              <Link to="/cookies" className="hover:text-gray-300 transition-colors">Cookies</Link>
+              <Link to="/support" className="hover:text-gray-300 transition-colors">Support</Link>
             </div>
             <p className="text-xs text-gray-600">
               © {currentYear} Forthix Ltd. Data may be delayed. Market analysis provided for educational purposes only.
