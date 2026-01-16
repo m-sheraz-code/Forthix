@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { TrendingUp, Maximize2, ChevronDown, Loader2 } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
+import StockIcon from '../components/StockIcon';
 import { getIndexData, getStockData, getMarketSummary, Quote } from '../lib/api';
 import { getTechnicalAnalysis } from '../lib/indicators';
 import SentimentMeter from '../components/SentimentMeter';
@@ -77,9 +78,7 @@ export default function IndexDetail() {
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 border border-blue-500/20">
-                <TrendingUp className="h-7 w-7 text-blue-500" />
-              </div>
+              <StockIcon symbol={symbol || ''} name={data.name} size="xl" className="rounded-3xl" />
               <div>
                 <h1 className="text-3xl font-bold text-white tracking-tight">{data.name}</h1>
                 <p className="text-sm font-medium text-gray-500">
@@ -213,9 +212,12 @@ export default function IndexDetail() {
                     to={`/indices/${idx.symbol}`}
                     className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-3 transition-all hover:bg-white/10"
                   >
-                    <div>
-                      <p className="text-sm font-bold text-white uppercase">{idx.symbol}</p>
-                      <p className="text-xs text-gray-500">{idx.name}</p>
+                    <div className="flex items-center gap-3">
+                      <StockIcon symbol={idx.symbol} name={idx.name} size="md" />
+                      <div>
+                        <p className="text-sm font-bold text-white uppercase">{idx.symbol}</p>
+                        <p className="text-xs text-gray-500">{idx.name}</p>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-white">${idx.price.toLocaleString()}</p>

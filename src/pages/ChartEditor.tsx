@@ -32,6 +32,7 @@ import {
     CandlestickChart,
     RotateCcw,
 } from 'lucide-react';
+import StockIcon from '../components/StockIcon';
 import PriceChart from '../components/PriceChart';
 import { getIndexData, getMarketSummary, searchStocks, Quote } from '../lib/api';
 import { useChartDrawing, DrawingObject } from '../hooks/useChartDrawing';
@@ -783,10 +784,13 @@ export default function ChartEditor() {
                                         }}
                                         className="w-full px-3 py-2 flex items-center justify-between hover:bg-white/5 transition-colors"
                                     >
-                                        <div className="text-left">
-                                            <p className="text-sm font-medium text-white">{s.symbol}</p>
-                                            <p className="text-xs text-gray-500">{s.name}</p>
-                                            {s.exchange && <p className="text-[10px] text-gray-600">{s.exchange} • {s.type}</p>}
+                                        <div className="flex items-center gap-3">
+                                            <StockIcon symbol={s.symbol} name={s.name} size="sm" />
+                                            <div className="text-left">
+                                                <p className="text-sm font-medium text-white">{s.symbol}</p>
+                                                <p className="text-xs text-gray-500 line-clamp-1 max-w-[140px]">{s.name}</p>
+                                                {s.exchange && <p className="text-[10px] text-gray-600">{s.exchange} • {s.type}</p>}
+                                            </div>
                                         </div>
                                         {(s.change !== undefined) && (
                                             <span className={`text-xs font-medium ${s.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>

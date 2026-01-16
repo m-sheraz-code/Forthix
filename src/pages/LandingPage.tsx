@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, TrendingUp, ArrowRight, Loader2, Plus } from 'lucide-react';
+import { Search, ArrowRight, Loader2, Plus } from 'lucide-react';
 import MiniChart from '../components/MiniChart';
+import StockIcon from '../components/StockIcon';
 
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
@@ -158,9 +159,7 @@ export default function LandingPage() {
                         className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all hover:bg-white/10 group"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20">
-                            <TrendingUp className="h-5 w-5 text-blue-500" />
-                          </div>
+                          <StockIcon symbol={item.symbol} name={item.name} size="md" />
                           <div>
                             <p className="text-sm font-bold text-white uppercase">{item.symbol}</p>
                             <p className="text-xs text-gray-400 line-clamp-1">{item.name}</p>
@@ -233,9 +232,7 @@ export default function LandingPage() {
                         className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-white/10"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                            <TrendingUp className="h-5 w-5 text-blue-500" />
-                          </div>
+                          <StockIcon symbol={index.symbol} name={index.name} size="md" />
                           <div>
                             <p className="text-sm font-bold text-white uppercase">{index.symbol}</p>
                             <p className="text-xs text-gray-400 line-clamp-1">{index.name}</p>
@@ -393,9 +390,12 @@ export default function LandingPage() {
                     to={`/indices/${stock.symbol}`}
                     className="flex items-center justify-between rounded-xl border border-white/5 bg-gray-900/50 p-3.5 transition-all hover:bg-white/5 hover:border-white/10"
                   >
-                    <div>
-                      <p className="text-sm font-bold text-white">{stock.symbol}</p>
-                      <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
+                    <div className="flex items-center gap-3">
+                      <StockIcon symbol={stock.symbol} name={stock.name} size="md" />
+                      <div>
+                        <p className="text-sm font-bold text-white">{stock.symbol}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-white">${stock.price.toFixed(2)}</p>
@@ -417,9 +417,12 @@ export default function LandingPage() {
                     to={`/indices/${stock.symbol}`}
                     className="flex items-center justify-between rounded-xl border border-white/5 bg-gray-900/50 p-3.5 transition-all hover:bg-white/5 hover:border-white/10"
                   >
-                    <div>
-                      <p className="text-sm font-bold text-white">{stock.symbol}</p>
-                      <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
+                    <div className="flex items-center gap-3">
+                      <StockIcon symbol={stock.symbol} name={stock.name} size="md" />
+                      <div>
+                        <p className="text-sm font-bold text-white">{stock.symbol}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-white">${stock.price.toFixed(2)}</p>
@@ -439,9 +442,12 @@ export default function LandingPage() {
                     to={`/indices/${stock.symbol}`}
                     className="flex items-center justify-between rounded-xl border border-white/5 bg-gray-900/50 p-3.5 transition-all hover:bg-white/5 hover:border-white/10"
                   >
-                    <div>
-                      <p className="text-sm font-bold text-white">{stock.symbol}</p>
-                      <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
+                    <div className="flex items-center gap-3">
+                      <StockIcon symbol={stock.symbol} name={stock.name} size="md" />
+                      <div>
+                        <p className="text-sm font-bold text-white">{stock.symbol}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{stock.name}</p>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-white">${stock.price.toFixed(2)}</p>
