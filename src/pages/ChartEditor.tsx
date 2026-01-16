@@ -112,6 +112,12 @@ export default function ChartEditor() {
     const [currentDrawingPreview, setCurrentDrawingPreview] = useState<DrawingObject | null>(null);
     const [textInput, setTextInput] = useState({ show: false, x: 0, y: 0, value: '' });
 
+    // Zoom and Pan state
+    const [visibleRange, setVisibleRange] = useState<{ start: number, end: number } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState<{ x: number, index: number } | null>(null);
+    const lastWheelTime = useRef(0);
+
     // Collapsible sections
     const [indicesCollapsed, setIndicesCollapsed] = useState(false);
     const [stocksCollapsed, setStocksCollapsed] = useState(false);
@@ -143,6 +149,9 @@ export default function ChartEditor() {
                     stocks: marketResult.data.movers?.gainers || []
                 });
             }
+
+            // Reset visible range when data loads
+            setVisibleRange(null);
 
             setIsLoading(false);
         }
@@ -213,6 +222,133 @@ export default function ChartEditor() {
             setIsFullscreen(false);
         }
     };
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsFullscreen(false);
+        }
+    };
+
+    // Helper to get time range index
+    const getTimeRangeIndex = (range: string) => {
+        return timeRanges.findIndex(r => r.toUpperCase() === range.toUpperCase());
+    };
+
+    // Zoom Handler
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+        // Prevent default browser scrolling
+        if (e.cancelable) e.preventDefault();
+
+        // Rate limit zoom events slightly
+        const now = Date.now();
+        if (now - lastWheelTime.current < 20) return;
+        lastWheelTime.current = now;
+
+        const currentData = data.chartData;
+        if (!currentData || currentData.length === 0) return;
+
+        const range = visibleRange || { start: 0, end: currentData.length };
+        const rangeSize = range.end - range.start;
+        const zoomFactor = 0.1; // Zoom 10% each tick
+        const zoomAmount = Math.max(1, Math.round(rangeSize * zoomFactor));
+
+        if (e.deltaY < 0) {
+            // ZOOM IN
+            const newSize = rangeSize - zoomAmount * 2; // Shrink from both sides
+            if (newSize < 10) { // Safety threshold, if too small switch range
+                const currentIndex = getTimeRangeIndex(timeRange);
+                if (currentIndex > 0) {
+                    setTimeRange(timeRanges[currentIndex - 1]);
+                    return; // Let effect reload data
+                }
+            } else {
+                // Focus zoom on center (simplified)
+                const newStart = Math.min(Math.max(0, range.start + zoomAmount), currentData.length - newSize);
+                const newEnd = Math.max(newStart + newSize, Math.min(currentData.length, range.end - zoomAmount));
+                setVisibleRange({ start: newStart, end: newEnd });
+            }
+        } else {
+            // ZOOM OUT
+            const newSize = rangeSize + zoomAmount * 2;
+            if (newSize >= currentData.length) {
+                // If already showing full data, switch to broader range
+                const currentIndex = getTimeRangeIndex(timeRange);
+                if (currentIndex < timeRanges.length - 1) {
+                    setTimeRange(timeRanges[currentIndex + 1]);
+                    return;
+                }
+                // Else just show full range
+                setVisibleRange({ start: 0, end: currentData.length });
+            } else {
+                const newStart = Math.max(0, range.start - zoomAmount);
+                const newEnd = Math.min(currentData.length, range.end + zoomAmount);
+                setVisibleRange({ start: newStart, end: newEnd });
+            }
+        }
+    }, [data.chartData, visibleRange, timeRange]);
+
+
+    // Pan Handlers
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if (activeTool !== 'cursor') {
+            // Pass through to drawing handler if not cursor
+            handleCanvasMouseDown(e);
+            return;
+        }
+
+        setIsDragging(true);
+        // Record starting X and current visible start
+        const range = visibleRange || { start: 0, end: data.chartData.length };
+        setDragStart({ x: e.clientX, index: range.start });
+    }, [activeTool, handleCanvasMouseDown, visibleRange, data.chartData]);
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        // Handle Drawing
+        handleCanvasMouseMove(e);
+
+        // Handle Panning
+        if (isDragging && dragStart && activeTool === 'cursor') {
+            const currentData = data.chartData;
+            if (!currentData || currentData.length === 0) return;
+
+            const rect = canvasRef.current?.getBoundingClientRect();
+            if (!rect) return;
+
+            const deltaPixels = dragStart.x - e.clientX;
+            // Approximate points per pixel
+            const range = visibleRange || { start: 0, end: currentData.length };
+            const rangeSize = range.end - range.start;
+            const pointsPerPixel = rangeSize / rect.width;
+
+            const deltaPoints = Math.round(deltaPixels * pointsPerPixel);
+
+            // Apply delta to original start point
+            let newStart = dragStart.index + deltaPoints;
+            let newEnd = newStart + rangeSize;
+
+            // Constrain
+            if (newStart < 0) {
+                newStart = 0;
+                newEnd = rangeSize;
+            } else if (newEnd > currentData.length) {
+                newEnd = currentData.length;
+                newStart = newEnd - rangeSize;
+            }
+
+            setVisibleRange({ start: newStart, end: newEnd });
+        }
+    }, [isDragging, dragStart, activeTool, handleCanvasMouseMove, visibleRange, data.chartData]);
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false);
+        setDragStart(null);
+        handleCanvasMouseUp();
+    }, [handleCanvasMouseUp]);
+
 
     // Drawing handlers
     const handleCanvasMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
@@ -522,6 +658,14 @@ export default function ChartEditor() {
         changePercent: 0,
         chartData: []
     };
+
+    // Calculate visible data
+    const displayData = visibleRange && data.chartData.length > 0
+        ? data.chartData.slice(visibleRange.start, visibleRange.end)
+        : data.chartData;
+
+    // Ensure we have at least 2 points to render map properly
+    const finalData = displayData.length > 1 ? displayData : data.chartData.slice(-2);
 
     const isPositive = data.change >= 0;
 
@@ -876,10 +1020,10 @@ export default function ChartEditor() {
                                         activeTool === 'text' ? 'text' :
                                             activeTool === 'eraser' ? 'not-allowed' : 'crosshair'
                             }}
-                            onMouseDown={handleCanvasMouseDown}
-                            onMouseMove={handleCanvasMouseMove}
-                            onMouseUp={handleCanvasMouseUp}
-                            onMouseLeave={handleCanvasMouseUp}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
                         >
                             <defs>
                                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">

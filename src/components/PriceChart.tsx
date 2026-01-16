@@ -136,6 +136,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             dataKey="candleBody"
             barSize={candleWidth}
             shape={<CandlestickShape />}
+            isAnimationActive={false}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -149,6 +150,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             dataKey="candleWick"
             fill="none"
             barSize={1}
+            isAnimationActive={false}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-ohlc-${index}`} stroke={entry.color} strokeWidth={2} />
@@ -163,6 +165,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             stroke={isPositive ? '#3b82f6' : '#ef4444'}
             strokeWidth={2}
             dot={false}
+            isAnimationActive={false}
           />
         );
       case 'area':
@@ -182,6 +185,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
               strokeWidth={2}
               fill="url(#priceGradient)"
               dot={false}
+              isAnimationActive={false}
             />
           </>
         );
