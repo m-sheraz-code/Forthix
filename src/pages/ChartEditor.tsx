@@ -223,16 +223,6 @@ export default function ChartEditor() {
         }
     };
 
-    const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            setIsFullscreen(true);
-        } else {
-            document.exitFullscreen();
-            setIsFullscreen(false);
-        }
-    };
-
     // Helper to get time range index
     const getTimeRangeIndex = (range: string) => {
         return timeRanges.findIndex(r => r.toUpperCase() === range.toUpperCase());
