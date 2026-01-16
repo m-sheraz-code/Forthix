@@ -33,7 +33,7 @@ import {
     RotateCcw,
 } from 'lucide-react';
 import PriceChart from '../components/PriceChart';
-import { getIndexData, getMarketSummary, Quote } from '../lib/api';
+import { getIndexData, getMarketSummary, searchStocks, Quote } from '../lib/api';
 import { useChartDrawing, DrawingObject } from '../hooks/useChartDrawing';
 
 // Drawing tool definitions
@@ -125,9 +125,37 @@ export default function ChartEditor() {
 
     // Search and input states
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearchingSymbols, setIsSearchingSymbols] = useState(false);
+
+    // Alert state
     const [alertPrice, setAlertPrice] = useState('');
     const [alertCondition, setAlertCondition] = useState<'above' | 'below'>('above');
     const [alerts, setAlerts] = useState<{ id: string, price: number, condition: 'above' | 'below' }[]>([]);
+
+    // Debounced Search Effect
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (!searchQuery || searchQuery.length < 1) {
+                setSearchResults([]);
+                return;
+            }
+
+            setIsSearchingSymbols(true);
+            try {
+                const { data } = await searchStocks(searchQuery);
+                if (data && data.results) {
+                    setSearchResults(data.results);
+                }
+            } catch (error) {
+                console.error("Search failed", error);
+            } finally {
+                setIsSearchingSymbols(false);
+            }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Drawing state
     const [currentDrawingPreview, setCurrentDrawingPreview] = useState<DrawingObject | null>(null);
@@ -505,11 +533,8 @@ export default function ChartEditor() {
         setShowAlertModal(false);
     };
 
-    // Filter symbols
-    const filteredSymbols = [...relatedData.indices, ...relatedData.stocks].filter(s =>
-        s.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Determine symbols to show
+    const displaySymbols = searchQuery.length > 0 ? searchResults : [...relatedData.indices, ...relatedData.stocks];
 
     // Render drawing
     const renderDrawing = (obj: DrawingObject, isPreview = false) => {
@@ -735,7 +760,20 @@ export default function ChartEditor() {
                                 />
                             </div>
                             <div className="max-h-64 overflow-y-auto">
-                                {filteredSymbols.map((s) => (
+                                {isSearchingSymbols && (
+                                    <div className="p-4 text-center text-gray-500 text-xs">
+                                        <Loader2 className="h-4 w-4 animate-spin mx-auto mb-1" />
+                                        Searching...
+                                    </div>
+                                )}
+
+                                {!isSearchingSymbols && displaySymbols.length === 0 && searchQuery.length > 0 && (
+                                    <div className="p-4 text-center text-gray-500 text-xs">
+                                        No results found
+                                    </div>
+                                )}
+
+                                {displaySymbols.map((s) => (
                                     <button
                                         key={s.symbol}
                                         onClick={() => {
@@ -748,10 +786,13 @@ export default function ChartEditor() {
                                         <div className="text-left">
                                             <p className="text-sm font-medium text-white">{s.symbol}</p>
                                             <p className="text-xs text-gray-500">{s.name}</p>
+                                            {s.exchange && <p className="text-[10px] text-gray-600">{s.exchange} • {s.type}</p>}
                                         </div>
-                                        <span className={`text-xs font-medium ${s.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {s.change >= 0 ? '+' : ''}{s.changePercent.toFixed(2)}%
-                                        </span>
+                                        {(s.change !== undefined) && (
+                                            <span className={`text-xs font-medium ${s.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                {s.change >= 0 ? '+' : ''}{s.changePercent?.toFixed(2)}%
+                                            </span>
+                                        )}
                                     </button>
                                 ))}
                             </div>
