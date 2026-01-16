@@ -61,7 +61,7 @@ export default function SentimentMeter({ type, label }: SentimentMeterProps) {
                     />
 
                     {/* Subtle Markers */}
-                    {[0, 22.5, 45, 67.5, 90].map((p, i) => {
+                    {[0, 22.5, 45, 67.5, 90].map((_, i) => {
                         const angle = -90 + (i * 45);
                         return (
                             <line
