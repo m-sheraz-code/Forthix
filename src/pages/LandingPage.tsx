@@ -85,7 +85,7 @@ export default function LandingPage() {
 
   return (
     <div className="bg-brand-dark">
-      <section className="relative min-h-[100vh] flex items-center justify-center border-b border-white/5">
+      <section className="relative min-h-[100vh] flex items-center justify-center border-b border-white/5 z-20">
         <div className="absolute inset-0 bg-gradient-to-b from-red-500/10 via-brand-dark to-brand-dark" />
         <div className="absolute inset-0 opacity-20">
           <div className="h-full w-full bg-[url('https://images.pexels.com/photos/7567443/pexels-photo-7567443.jpeg')] bg-cover bg-center" />
@@ -102,7 +102,7 @@ export default function LandingPage() {
               for traders and investors.
             </p>
 
-            <div className="mx-auto max-w-xl relative group px-2" ref={searchRef}>
+            <div className="mx-auto max-w-xl relative group px-2 z-50" ref={searchRef}>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -132,7 +132,7 @@ export default function LandingPage() {
 
               {/* Suggestions Dropdown */}
               {showSuggestions && (searchQuery.trim().length > 0) && (
-                <div className="absolute left-2 right-2 top-full mt-2 overflow-hidden rounded-2xl border border-white/10 bg-gray-900/80 p-2 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                <div className="absolute left-2 right-2 top-full mt-2 rounded-2xl border border-white/10 bg-gray-900/80 p-2 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                   <div className="max-h-[480px] overflow-y-auto">
                     {isSearching && (
                       <div className="p-4 text-center text-gray-400">
