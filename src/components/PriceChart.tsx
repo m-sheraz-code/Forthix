@@ -206,7 +206,7 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
               return date.toLocaleString('en-US', { hour: 'numeric', hour12: true });
             }
             if (normalizedRange === '5d') {
-              return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })} ${date.getHours().toString().padStart(2, '0')}:00`;
+              return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })}`;
             }
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           }}
