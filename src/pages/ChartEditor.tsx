@@ -177,20 +177,69 @@ export default function ChartEditor() {
 
     const timeRanges = ['1D', '5D', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'ALL'];
 
+    // Mapping for fetching larger datasets to enable panning
+    const FETCH_MAPPING: Record<string, string> = {
+        '1D': '5d',
+        '5D': '1m',
+        '1M': '3m',
+        '3M': '1y',
+        '6M': '1y',
+        'YTD': '1y',
+        '1Y': '5y',
+        '5Y': 'max',
+        'ALL': 'max'
+    };
+
     // Load data
     useEffect(() => {
         async function loadData() {
             if (!symbol) return;
             setIsLoading(true);
 
+            // Determine what to fetch vs what to show
+            const fetchRange = FETCH_MAPPING[timeRange.toUpperCase()] || '1y';
+
             const [indexResult, marketResult] = await Promise.all([
-                getIndexData(symbol, timeRange.toLowerCase()),
+                getIndexData(symbol, fetchRange.toLowerCase()),
                 getMarketSummary()
             ]);
 
             if (indexResult.data) {
                 setIndexData(indexResult.data);
                 setSelectedSymbol(indexResult.data);
+
+                // Calculate initial visible range based on the USER SELECTED timeRange
+                // We fetched 'fetchRange' (e.g. 1M) but want to show 'timeRange' (e.g. 5D)
+                const data = indexResult.data.chartData || [];
+                if (data.length > 0 && timeRange !== 'ALL') {
+                    const now = new Date();
+                    let startTime = now.getTime();
+
+                    // Calculate lookback
+                    switch (timeRange.toUpperCase()) {
+                        case '1D': startTime -= 24 * 60 * 60 * 1000; break;
+                        case '5D': startTime -= 5 * 24 * 60 * 60 * 1000; break;
+                        case '1M': startTime -= 30 * 24 * 60 * 60 * 1000; break;
+                        case '3M': startTime -= 90 * 24 * 60 * 60 * 1000; break;
+                        case '6M': startTime -= 180 * 24 * 60 * 60 * 1000; break;
+                        case 'YTD':
+                            startTime = new Date(now.getFullYear(), 0, 1).getTime();
+                            break;
+                        case '1Y': startTime -= 365 * 24 * 60 * 60 * 1000; break;
+                        case '5Y': startTime -= 5 * 365 * 24 * 60 * 60 * 1000; break;
+                    }
+
+                    // Find index closest to startTime
+                    let startIndex = data.findIndex(d => new Date(d.time).getTime() >= startTime);
+                    if (startIndex === -1) startIndex = 0; // Show all if cutoff is before data start
+
+                    // If we found a start index, set the visible range
+                    // If requested range covers everything (startIndex is 0 or close), it's fine
+                    setVisibleRange({ start: startIndex, end: data.length });
+                } else {
+                    // For ALL or fallback, show everything
+                    setVisibleRange(null);
+                }
             }
 
             if (marketResult.data) {
@@ -199,9 +248,6 @@ export default function ChartEditor() {
                     stocks: marketResult.data.movers?.gainers || []
                 });
             }
-
-            // Reset visible range when data loads
-            setVisibleRange(null);
 
             setIsLoading(false);
         }
