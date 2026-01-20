@@ -202,8 +202,8 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             const date = new Date(value);
             const normalizedRange = timeRange.toLowerCase();
             if (normalizedRange === '1d') {
-              // Show hour with AM/PM
-              return date.toLocaleString('en-US', { hour: 'numeric', hour12: true });
+              // Show date and hour
+              return date.toLocaleString('en-US', { day: 'numeric', month: 'short', hour: 'numeric', hour12: true });
             }
             if (normalizedRange === '5d') {
               return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })}`;
