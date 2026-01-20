@@ -100,10 +100,12 @@ const RANGE_CONFIG: Record<string, { range: string; interval: string }> = {
     '1d': { range: '1d', interval: '5m' },
     '5d': { range: '5d', interval: '15m' },
     '1m': { range: '1mo', interval: '1h' },
+    '3m': { range: '3mo', interval: '1d' },
     '6m': { range: '6mo', interval: '1d' },
     'ytd': { range: 'ytd', interval: '1d' },
     '1y': { range: '1y', interval: '1d' },
     '5y': { range: '5y', interval: '1wk' },
+    'all': { range: 'max', interval: '1mo' },
     'max': { range: 'max', interval: '1mo' },
 };
 
@@ -596,6 +598,8 @@ function getStartDate(range: string): Date {
             return new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
         case '1m':
             return new Date(now.setMonth(now.getMonth() - 1));
+        case '3m':
+            return new Date(now.setMonth(now.getMonth() - 3));
         case '6m':
             return new Date(now.setMonth(now.getMonth() - 6));
         case 'ytd':
@@ -604,6 +608,7 @@ function getStartDate(range: string): Date {
             return new Date(now.setFullYear(now.getFullYear() - 1));
         case '5y':
             return new Date(now.setFullYear(now.getFullYear() - 5));
+        case 'all':
         case 'max':
             return new Date('1970-01-01');
         default:

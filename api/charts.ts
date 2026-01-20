@@ -9,7 +9,7 @@ import {
     validateRequired,
 } from './_lib/middleware.js';
 
-const VALID_RANGES = ['1d', '5d', '1m', '6m', 'ytd', '1y', '5y', 'max'];
+const VALID_RANGES = ['1d', '5d', '1m', '3m', '6m', 'ytd', '1y', '5y', 'all', 'max'];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Handle CORS preflight
