@@ -202,7 +202,14 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
             const date = new Date(value);
             const normalizedRange = timeRange.toLowerCase();
             if (normalizedRange === '1d') {
-              // Show hour with AM/PM
+              const today = new Date();
+              const isToday = date.getDate() === today.getDate() &&
+                date.getMonth() === today.getMonth() &&
+                date.getFullYear() === today.getFullYear();
+
+              if (!isToday) {
+                return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', hour12: true });
+              }
               return date.toLocaleString('en-US', { hour: 'numeric', hour12: true });
             }
             if (normalizedRange === '5d') {
