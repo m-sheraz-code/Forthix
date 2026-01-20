@@ -217,7 +217,12 @@ export default function ChartEditor() {
 
                     // Calculate lookback
                     switch (timeRange.toUpperCase()) {
-                        case '1D': startTime -= 24 * 60 * 60 * 1000; break;
+                        case '1D':
+                            // Start from the beginning of the last available day
+                            const lastDate = new Date(data[data.length - 1].time);
+                            lastDate.setHours(0, 0, 0, 0);
+                            startTime = lastDate.getTime();
+                            break;
                         case '5D': startTime -= 5 * 24 * 60 * 60 * 1000; break;
                         case '1M': startTime -= 30 * 24 * 60 * 60 * 1000; break;
                         case '3M': startTime -= 90 * 24 * 60 * 60 * 1000; break;
