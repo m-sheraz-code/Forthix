@@ -7,6 +7,7 @@ import StockIcon from '../components/StockIcon';
 import IdeaCard from '../components/IdeaCard';
 import NewsCard from '../components/NewsCard';
 import { getMarketSummary, MarketSummary, getIdeas, getNews, Idea, searchStocks } from '../lib/api';
+import { getMarketIndicatorLabel } from '../lib/market-info';
 
 
 interface NewsItem {
@@ -204,7 +205,7 @@ export default function LandingPage() {
                     <div className="mb-4 flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-400">{featuredIndex.symbol}</p>
-                        <h3 className="text-xl font-semibold text-white">{featuredIndex.name}</h3>
+                        <h3 className="text-xl font-semibold text-white">{getMarketIndicatorLabel(featuredIndex.symbol, featuredIndex.name)}</h3>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-white">
@@ -235,7 +236,7 @@ export default function LandingPage() {
                           <StockIcon symbol={index.symbol} name={index.name} size="md" />
                           <div>
                             <p className="text-sm font-bold text-white uppercase">{index.symbol}</p>
-                            <p className="text-xs text-gray-400 line-clamp-1">{index.name}</p>
+                            <p className="text-xs text-gray-400 line-clamp-1">{getMarketIndicatorLabel(index.symbol, index.name)}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -275,7 +276,9 @@ export default function LandingPage() {
                 </div>
 
                 <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">Dollar Index (DXY)</h4>
+                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">
+                    {getMarketIndicatorLabel('DXY', 'Dollar Index (DXY)')}
+                  </h4>
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-2xl font-bold text-white">
@@ -298,7 +301,9 @@ export default function LandingPage() {
                 </div>
 
                 <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">10Y Treasury Yield</h4>
+                  <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">
+                    {getMarketIndicatorLabel('TNX', '10Y Treasury Yield')}
+                  </h4>
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-2xl font-bold text-white">

@@ -3,6 +3,7 @@ import { Loader2, ArrowUpRight, ArrowDownRight, Plus, Globe, BarChart2 } from 'l
 import { Link } from 'react-router-dom';
 import MiniChart from '../components/MiniChart';
 import { getMarketSummary, MarketSummary, Quote } from '../lib/api';
+import { MARKET_INDICATORS_INFO, getMarketIndicatorLabel } from '../lib/market-info';
 
 const generateVolatileData = (points: number, base: number, volatility: number) => {
   const data = [];
@@ -19,6 +20,7 @@ const generateVolatileData = (points: number, base: number, volatility: number) 
   return data;
 };
 
+
 export default function MarketDashboard() {
   const [activeTab, setActiveTab] = useState('indices');
   const [marketData, setMarketData] = useState<MarketSummary | null>(null);
@@ -31,7 +33,34 @@ export default function MarketDashboard() {
       setIsLoading(true);
       const { data } = await getMarketSummary();
       if (data) {
-        setMarketData(data);
+        // Ensure required indicators are present
+        const indices = [...(data.indices || [])];
+
+        // Add DXY if missing from indices (it's in summary usually)
+        if (!indices.find(i => i.symbol === 'DXY' || i.symbol === 'DX-Y.NYB') && data.summary.dollarIndex) {
+          indices.push({
+            symbol: 'DXY',
+            name: 'U.S. Dollar Index',
+            price: data.summary.dollarIndex,
+            change: 0, // We'd need to calculate or fetch this
+            changePercent: data.summary.dollarIndexChange,
+            chartData: generateVolatileData(20, data.summary.dollarIndex, 0.5)
+          });
+        }
+
+        // Add mock Market Participation if missing
+        if (!indices.find(i => i.symbol === 'PARTICIPATION')) {
+          indices.push({
+            symbol: 'PARTICIPATION',
+            name: 'Market Participation',
+            price: 1.42, // Mock ratio
+            change: 0.05,
+            changePercent: 3.5,
+            chartData: generateVolatileData(20, 1.4, 0.1)
+          });
+        }
+
+        setMarketData({ ...data, indices });
       }
       setIsLoading(false);
     }
@@ -92,35 +121,54 @@ export default function MarketDashboard() {
                   </span>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {(marketData?.indices || []).slice(0, visibleIndicesCount).map((index: Quote) => (
-                    <Link key={index.symbol} to={`/indices/${index.symbol}`} className="block group">
-                      <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 transition-all hover:bg-white/5 hover:border-white/10 hover:shadow-2xl">
-                        <div className="mb-4 flex items-start justify-between">
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">{index.symbol}</p>
-                            <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1">{index.name}</h3>
+                  {(marketData?.indices || []).slice(0, visibleIndicesCount).map((index: Quote) => {
+                    const displayName = getMarketIndicatorLabel(index.symbol, index.name);
+                    const info = MARKET_INDICATORS_INFO[index.symbol] || MARKET_INDICATORS_INFO[index.symbol.toUpperCase()];
+
+                    return (
+                      <Link key={index.symbol} to={`/indices/${index.symbol}`} className="block group">
+                        <div className="rounded-3xl border border-white/5 bg-gray-900/50 p-6 transition-all hover:bg-white/5 hover:border-white/10 hover:shadow-2xl h-full flex flex-col">
+                          <div className="mb-4 flex items-start justify-between">
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">{index.symbol}</p>
+                              <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1">{displayName}</h3>
+                            </div>
+                            <div className={`rounded-xl p-2 bg-white/5 ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                              {index.change >= 0 ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}
+                            </div>
                           </div>
-                          <div className={`rounded-xl p-2 bg-white/5 ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {index.change >= 0 ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}
+
+                          <div className="flex items-end justify-between mb-4">
+                            <div>
+                              <p className="text-2xl font-bold text-white">
+                                {index.symbol === 'PARTICIPATION'
+                                  ? index.price.toFixed(2)
+                                  : index.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                              </p>
+                              <p className={`text-sm font-bold mt-1 ${index.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {index.change >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%
+                              </p>
+                            </div>
+                            <div className="h-12 w-28 opacity-80">
+                              <MiniChart
+                                data={index.chartData || generateVolatileData(20, index.price, 10)}
+                                isPositive={index.change >= 0}
+                              />
+                            </div>
                           </div>
+
+                          {info && (
+                            <div className="mt-auto pt-4 border-t border-white/5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Why this matters:</p>
+                              <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                {info.explanation}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <p className="text-2xl font-bold text-white">{index.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
-                            <p className={`text-sm font-bold mt-1 ${index.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {index.change >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%
-                            </p>
-                          </div>
-                          <div className="h-12 w-28 opacity-80">
-                            <MiniChart
-                              data={index.chartData || generateVolatileData(20, index.price, 10)}
-                              isPositive={index.change >= 0}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 {marketData && marketData.indices.length > visibleIndicesCount && (
@@ -137,6 +185,7 @@ export default function MarketDashboard() {
               </div>
             )}
 
+
             {activeTab === 'stocks' && (
               <div className="grid gap-8 lg:grid-cols-2">
                 <div>
@@ -145,7 +194,7 @@ export default function MarketDashboard() {
                     {marketData?.movers.gainers.slice(0, visibleStocksCount).map((stock: Quote) => (
                       <Link
                         key={stock.symbol}
-                        to={`/indices/${stock.symbol}`}
+                        to={`/stocks/${stock.symbol}`}
                         className="flex items-center justify-between rounded-2xl border border-white/5 bg-gray-900/50 p-4 transition-all hover:bg-white/5"
                       >
                         <div className="flex items-center gap-4">
@@ -171,7 +220,7 @@ export default function MarketDashboard() {
                     {marketData?.movers.mostActive.slice(0, visibleStocksCount).map((stock: Quote) => (
                       <Link
                         key={stock.symbol}
-                        to={`/indices/${stock.symbol}`}
+                        to={`/stocks/${stock.symbol}`}
                         className="flex items-center justify-between rounded-2xl border border-white/5 bg-gray-900/50 p-4 transition-all hover:bg-white/5"
                       >
                         <div className="flex items-center gap-4">

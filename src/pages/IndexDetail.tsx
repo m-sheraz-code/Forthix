@@ -5,12 +5,15 @@ import PriceChart from '../components/PriceChart';
 import StockIcon from '../components/StockIcon';
 import { getIndexData, getStockData, getMarketSummary, Quote } from '../lib/api';
 import { getTechnicalAnalysis } from '../lib/indicators';
+import { getMarketIndicatorLabel, getMarketIndicatorExplanation } from '../lib/market-info';
 import SentimentMeter from '../components/SentimentMeter';
 
 export default function IndexDetail() {
   const { symbol } = useParams();
   const location = useLocation();
-  const isStock = location.pathname.includes('/stocks/');
+  const isUrlStock = location.pathname.includes('/stocks/');
+  const isKnownStock = ['MSFT', 'AAPL', 'NVDA', 'TSLA', 'GOOGL', 'AMZN', 'META'].includes(symbol || '');
+  const isStock = isUrlStock || isKnownStock;
 
   const [timeRange, setTimeRange] = useState('1m');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -80,9 +83,11 @@ export default function IndexDetail() {
             <div className="flex items-start gap-2 sm:gap-4">
               <StockIcon symbol={symbol || ''} name={data.name} size="lg" className="rounded-2xl sm:rounded-3xl flex-shrink-0" />
               <div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">{data.name}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight">
+                  {getMarketIndicatorLabel(symbol || '', data.name)}
+                </h1>
                 <p className="text-xs sm:text-sm font-medium text-gray-500 line-clamp-1">
-                  {symbol} • {data.exchange} • {isStock ? 'Stock' : 'Index'}
+                  {symbol} • {isStock ? 'Stock' : 'Index'}
                 </p>
               </div>
             </div>
@@ -196,11 +201,19 @@ export default function IndexDetail() {
 
           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-5 lg:p-6 shadow-xl">
-              <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-bold text-white">About {data.name}</h3>
-              <p className="text-xs sm:text-sm leading-relaxed text-gray-400">
-                Live market data for {data.name} ({symbol}). This index/stock is part of the global trading market.
+              <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-bold text-white">About {getMarketIndicatorLabel(symbol || '', data.name)}</h3>
+              <p className="text-xs sm:text-sm leading-relaxed text-gray-400 mb-4">
+                Live market data for {getMarketIndicatorLabel(symbol || '', data.name)} ({symbol}). This index/stock is part of the global trading market.
                 Keep track of performance, volume, and real-time updates through Forthix's advanced charting system.
               </p>
+              {getMarketIndicatorExplanation(symbol || '') && (
+                <div className="pt-4 border-t border-white/5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Why this matters:</p>
+                  <p className="text-xs text-blue-400/80 leading-relaxed italic">
+                    {getMarketIndicatorExplanation(symbol || '')}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="rounded-2xl sm:rounded-3xl border border-white/5 bg-gray-900/50 p-4 sm:p-5 lg:p-6 shadow-xl">
@@ -216,7 +229,7 @@ export default function IndexDetail() {
                       <StockIcon symbol={idx.symbol} name={idx.name} size="sm" className="flex-shrink-0" />
                       <div className="min-w-0 flex-1">
                         <p className="text-xs sm:text-sm font-bold text-white uppercase truncate">{idx.symbol}</p>
-                        <p className="text-[10px] sm:text-xs text-gray-500 truncate">{idx.name}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 truncate">{getMarketIndicatorLabel(idx.symbol, idx.name)}</p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">

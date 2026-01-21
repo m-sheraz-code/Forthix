@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Search, Loader2, ArrowLeft, Building2, BarChart3 } from 'lucide-react';
 import { searchStocks } from '../lib/api';
+import { getMarketIndicatorLabel } from '../lib/market-info';
 
 interface SearchResult {
     symbol: string;
@@ -107,7 +108,7 @@ export default function SearchResults() {
                                                 </span>
                                             </div>
                                             <p className="text-sm text-gray-400 line-clamp-1 group-hover:text-gray-300 transition-colors">
-                                                {result.name}
+                                                {getMarketIndicatorLabel(result.symbol, result.name)}
                                             </p>
                                         </div>
                                     </div>
