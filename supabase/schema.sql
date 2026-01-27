@@ -48,6 +48,24 @@ CREATE INDEX IF NOT EXISTS idx_ideas_symbol ON public.ideas(symbol);
 CREATE INDEX IF NOT EXISTS idx_ideas_created_at ON public.ideas(created_at DESC);
 
 -- ============================================
+-- 2.5. NEWS TABLE
+-- ============================================
+-- News articles and blog posts (can be created via n8n webhook)
+
+CREATE TABLE IF NOT EXISTS public.news (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  content TEXT,
+  image_url TEXT,
+  category TEXT DEFAULT 'BREAKING',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for faster date ordering
+CREATE INDEX IF NOT EXISTS idx_news_created_at ON public.news(created_at DESC);
+
+-- ============================================
 -- 3. IDEA LIKES TABLE (for tracking who liked what)
 -- ============================================
 
@@ -129,6 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
 -- Enable RLS on all tables
 ALTER TABLE public.watchlists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ideas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.idea_likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.idea_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_charts ENABLE ROW LEVEL SECURITY;
