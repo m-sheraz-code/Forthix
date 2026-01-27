@@ -170,9 +170,20 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
                     // Fallback to chart API
                     const result = await rawFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`);
                     const meta = result?.chart?.result?.[0]?.meta;
+                    
+                    // Fallback to indicators if meta price is 0 (common Yahoo bug)
+                    let lastClose = meta?.regularMarketPrice;
+                    const indicators = result?.chart?.result?.[0]?.indicators?.quote?.[0];
+                    if ((!lastClose || lastClose === 0) && indicators?.close) {
+                         const closes = indicators.close.filter((c: number) => c !== null);
+                         if (closes.length > 0) {
+                             lastClose = closes[closes.length - 1];
+                         }
+                    }
+
                     if (meta) {
                         quote = {
-                            regularMarketPrice: meta.regularMarketPrice,
+                            regularMarketPrice: lastClose || 0,
                             regularMarketChange: meta.regularMarketPrice - meta.chartPreviousClose,
                             regularMarketChangePercent: ((meta.regularMarketPrice - meta.chartPreviousClose) / meta.chartPreviousClose) * 100,
                             regularMarketPreviousClose: meta.chartPreviousClose,
@@ -180,6 +191,21 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
                             symbol: meta.symbol,
                             exchangeName: meta.exchangeName
                         };
+                         // Re-calculate change if we used a candle close
+                         if (lastClose !== meta.regularMarketPrice && meta.chartPreviousClose) {
+                             quote.regularMarketChange = lastClose - meta.chartPreviousClose;
+                             quote.regularMarketChangePercent = ((lastClose - meta.chartPreviousClose) / meta.chartPreviousClose) * 100;
+                         }
+
+                         // Calculate High/Low from indicators if meta is 0
+                         const highs = indicators.high.filter((v: number) => v !== null);
+                         const lows = indicators.low.filter((v: number) => v !== null);
+                         const calcHigh = highs.length ? Math.max(...highs) : 0;
+                         const calcLow = lows.length ? Math.min(...lows) : 0;
+                         
+                         if (!quote.regularMarketDayHigh && calcHigh > 0) quote.regularMarketDayHigh = calcHigh;
+                         if (!quote.regularMarketDayLow && calcLow > 0) quote.regularMarketDayLow = calcLow;
+
                     } else {
                         throw new Error('No meta in chart response');
                     }

@@ -35,9 +35,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'user') {
             const content = lastMessage.content || "";
-            // Regex to find potential tickers: 2-5 uppercase letters, optionally prefixed with $
-            const tickerRegex = /\b\$?([A-Z]{2,5})\b/g;
-            const matches = [...content.matchAll(tickerRegex)].map(m => m[1]);
+            // Regex to find potential tickers: 
+            // 1. Starts with $, e.g. $AAPL, $nvda (Case insensitive via flag)
+            // 2. OR Uppercase 2-5 chars, e.g. AAPL, NVDA
+            // 3. OR Common tech names if they appear? (Simpler: just use the heuristics above)
+            // Combined: /(\$[A-Za-z]{2,5})|\b([A-Z]{2,5})\b/g
+            const tickerRegex = /(\$[A-Za-z]{2,5})|\b([A-Z]{2,5})\b/g;
+            
+            const matches: string[] = [];
+            let match;
+            while ((match = tickerRegex.exec(content)) !== null) {
+                // match[1] is $ticker, match[2] is TICKER
+                let clean = (match[1] || match[2]).replace('$', '').toUpperCase();
+                matches.push(clean);
+            }
+            
             // Filter unique, limit to top 2 to save tokens
             const uniqueSymbols = [...new Set(matches)].slice(0, 2);
 
