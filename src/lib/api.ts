@@ -235,3 +235,18 @@ export async function saveChart(symbol: string, name?: string, config?: Record<s
 export async function getNews(filter = 'latest') {
     return apiFetch<{ news: any[]; filter: string }>(`/news?filter=${filter}`);
 }
+// ============================================
+// CHAT API
+// ============================================
+
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+export async function getChatResponse(messages: ChatMessage[], model?: string) {
+    return apiFetch<any>('/chat', {
+        method: 'POST',
+        body: JSON.stringify({ messages, model }),
+    });
+}

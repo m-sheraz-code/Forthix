@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Loader2, TrendingUp } from "lucide-react";
+import { getChatResponse } from "../lib/api";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-const OPENROUTER_API_KEY =
-  "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";
 const MODEL = "deepseek/deepseek-r1:free";
 
 export default function StockChatbotFAB() {
@@ -42,39 +41,16 @@ export default function StockChatbotFAB() {
     setError(null);
 
     try {
-      const response = await fetch(
-        "https://api.openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-            "HTTP-Referer": window.location.origin,
-            "X-Title": "StockChat",
-          },
-          body: JSON.stringify({
-            model: MODEL,
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are a professional stock market expert. Your goal is to provide insights and information related to stocks, markets, and finance ONLY. If the user asks anything unrelated to the stock market or finance, politely decline and ask them to stay on topic.",
-              },
-              ...messages,
-              userMessage,
-            ],
-          }),
-        },
+      const { data, error: apiError } = await getChatResponse(
+        [...messages, userMessage],
+        MODEL
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("OpenRouter Error:", errorData);
-        throw new Error(errorData.error?.message || "Failed to fetch response from AI");
+      if (apiError) {
+        throw new Error(apiError.message || apiError.error || "Failed to fetch response from AI");
       }
 
-      const data = await response.json();
-      if (!data.choices || !data.choices[0]) {
+      if (!data?.choices?.[0]?.message) {
         throw new Error("Invalid response from AI");
       }
 
