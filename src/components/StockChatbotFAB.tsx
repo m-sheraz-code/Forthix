@@ -9,7 +9,7 @@ interface Message {
   content: string;
 }
 
-const MODEL = "tngtech/deepseek-r1t2-chimera:free";
+const MODEL = "allenai/molmo-2-8b:free";
 
 export default function StockChatbotFAB() {
   const [isOpen, setIsOpen] = useState(false);
