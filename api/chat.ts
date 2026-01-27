@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         const options = {
-            hostname: 'api.openrouter.ai',
+            hostname: 'openrouter.ai',
             path: '/api/v1/chat/completions',
             method: 'POST',
             headers: {
