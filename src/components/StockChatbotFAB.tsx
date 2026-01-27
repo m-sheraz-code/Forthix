@@ -7,7 +7,7 @@ interface Message {
   content: string;
 }
 
-const MODEL = "deepseek/deepseek-r1:free";
+const MODEL = "tngtech/deepseek-r1t2-chimera:free";
 
 export default function StockChatbotFAB() {
   const [isOpen, setIsOpen] = useState(false);
