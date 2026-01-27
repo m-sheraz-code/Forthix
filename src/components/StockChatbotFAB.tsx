@@ -8,7 +8,7 @@ interface Message {
 
 const OPENROUTER_API_KEY =
   "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";
-const MODEL = "tngtech/deepseek-r1t2-chimera:free";
+const MODEL = "deepseek/deepseek-r1:free";
 
 export default function StockChatbotFAB() {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,18 +68,24 @@ export default function StockChatbotFAB() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch response from AI");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("OpenRouter Error:", errorData);
+        throw new Error(errorData.error?.message || "Failed to fetch response from AI");
       }
 
       const data = await response.json();
+      if (!data.choices || !data.choices[0]) {
+        throw new Error("Invalid response from AI");
+      }
+
       const assistantMessage: Message = {
         role: "assistant",
         content: data.choices[0].message.content,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      console.error(err);
-      setError("Sorry, I encountered an error. Please try again.");
+    } catch (err: any) {
+      console.error("Chat Error:", err);
+      setError(err.message || "Sorry, I encountered an error. Please try again.");
     } finally {
       setIsLoading(false);
     }
