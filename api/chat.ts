@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return errorResponse(res, 400, 'Messages are required and must be an array.');
         }
 
-        const apiKey = process.env.OPENROUTER_API_KEY || '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';
+        const apiKey = process.env.OPENROUTER_API_KEY || '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';
         
         console.log('Using API Key:', apiKey.substring(0, 10) + '...');
 
