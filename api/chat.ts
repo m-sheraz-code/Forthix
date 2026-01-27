@@ -35,20 +35,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'user') {
             const content = lastMessage.content || "";
-            // Regex to find potential tickers: 
-            // 1. Starts with $, e.g. $AAPL, $nvda (Case insensitive via flag)
-            // 2. OR Uppercase 2-5 chars, e.g. AAPL, NVDA
-            // 3. OR Common tech names if they appear? (Simpler: just use the heuristics above)
-            // Combined: /(\$[A-Za-z]{2,5})|\b([A-Z]{2,5})\b/g
-            const tickerRegex = /(\$[A-Za-z]{2,5})|\b([A-Z]{2,5})\b/g;
-            
+            // Dictionary for common company names to tickers
+            const COMPANY_MAPPING: Record<string, string> = {
+                'nvidia': 'NVDA', 'apple': 'AAPL', 'tesla': 'TSLA', 'microsoft': 'MSFT',
+                'google': 'GOOGL', 'alphabet': 'GOOGL', 'amazon': 'AMZN', 'meta': 'META',
+                'facebook': 'META', 'netflix': 'NFLX', 'amd': 'AMD', 'intel': 'INTC',
+                'tsmc': 'TSM', 'broadcom': 'AVGO', 'oracle': 'ORCL', 'adobe': 'ADBE',
+                'salesforce': 'CRM', 'uber': 'UBER', 'airbnb': 'ABNB', 'disney': 'DIS',
+                'cocacola': 'KO', 'pepsi': 'PEP', 'mcdonalds': 'MCD', 'starbucks': 'SBUX',
+                'nike': 'NKE', 'walmart': 'WMT', 'costco': 'COST', 'pfizer': 'PFE',
+                'moderna': 'MRNA', 'jpmorgan': 'JPM', 'visa': 'V', 'mastercard': 'MA',
+                'paypal': 'PYPL', 'bitcoin': 'BTC-USD', 'ethereum': 'ETH-USD',
+                'sp500': '^GSPC', 'nasdaq': '^IXIC', 'dow': '^DJI'
+            };
+
             const matches: string[] = [];
+            
+            // 1. Direct Regex for Tickers ($NVDA, NVDA)
+            const tickerRegex = /(\$[A-Za-z]{2,5})|\b([A-Z]{2,5})\b/g;
             let match;
             while ((match = tickerRegex.exec(content)) !== null) {
-                // match[1] is $ticker, match[2] is TICKER
                 let clean = (match[1] || match[2]).replace('$', '').toUpperCase();
                 matches.push(clean);
             }
+
+            // 2. Keyword Search for Company Names
+            const lowerContent = content.toLowerCase();
+            Object.keys(COMPANY_MAPPING).forEach(name => {
+                if (lowerContent.includes(name)) { // Simple include check, could be better with regex
+                    matches.push(COMPANY_MAPPING[name]);
+                }
+            });
             
             // Filter unique, limit to top 2 to save tokens
             const uniqueSymbols = [...new Set(matches)].slice(0, 2);
@@ -122,10 +139,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         - **RECOMMENDATIONS**: If recommending to buy/watch, you MUST provide detailed REASONING based on the technicals/fundamentals provided.
         - **RISK ASSESSMENT**: You MUST classify the stock as Low, Medium, or High Risk and explain WHY (e.g., "High risk due to high volatility of X%").
         - **PRIVACY**: If the user asks about non-finance topics (cooking, politics, etc.), politely decline and say you only discuss the stock market.
+        - **NO HALLUCINATIONS**: If "SYSTEM INJECTED LIVE MARKET DATA" is NOT present for a requested stock, DO NOT MAKE UP NUMBERS. Instead, say: "I need to fetch the latest data. Please specify the stock symbol (e.g., $NVDA) or full company name."
         
         DATA USAGE:
         - If "SYSTEM INJECTED LIVE MARKET DATA" is present in the context, USE IT as the absolute truth.
-        - If no data is present but the user asks for a price, try to give a general answer or ask them to specify the ticker symbol clearly (e.g., "AAPL").
+        - If no data is present, do NOT invent data.
         `;
 
         const postData = JSON.stringify({
