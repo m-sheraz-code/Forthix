@@ -24,8 +24,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return errorResponse(res, 401, 'OpenRouter API key is not configured.');
         }
 
-        console.log('Using API Key:', apiKey.substring(0, 10) + '...');
-
+        console.log('Using API Key:', apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 4));
+        console.log('Key Length:', apiKey.length);
+        
         const postData = JSON.stringify({
             model: model || 'deepseek/deepseek-r1:free',
             messages: [
@@ -80,6 +81,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (responseData.statusCode < 200 || responseData.statusCode >= 300) {
             console.error('OpenRouter Error Status:', responseData.statusCode);
             console.error('OpenRouter Error Body:', responseData.body);
+            console.error('Request Headers:', JSON.stringify(options.headers, (key, value) => {
+                if (key.toLowerCase() === 'authorization') return 'Bearer [MASKED]';
+                return value;
+            }, 2));
             
             try {
                 const errorJson = JSON.parse(responseData.body);
