@@ -1,3 +1,12 @@
+# Ignore everything
+*
+# Unignore all files with an extension
+!*.*
+# Unignore all directories
+!*/
+
+
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -11,6 +20,7 @@ dist
 dist-ssr
 *.local
 
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -20,11 +30,31 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# .env
 .env
+.env.test
+.env.production
+.env.local
 
+# Vercel
 .vercel
-.env*.local
 
-*
-\.*
-.md
+# Testing
+coverage
+
+
+
+# Explicitly ignore files
+*.md
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.class
+*.jar
+*.pyc
+.gemini/skills/ui-ux-pro-max/scripts
+
+node_modules
