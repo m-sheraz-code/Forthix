@@ -39,3 +39,29 @@
     background: rgba(255, 255, 255, 0.2);
   }
 }
+
+/* Splash Screen & Loader Animations */
+@keyframes gradient-flow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-gradient-flow {
+  animation: gradient-flow 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
