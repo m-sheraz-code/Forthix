@@ -148,7 +148,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `;
 
         const postData = JSON.stringify({
-            model: model || 'google/gemini-2.0-flash-lite-preview-02-05:free',
+            model: model || 'arcee-ai/trinity-large-preview:free',
             messages: [
                 {
                     role: 'system',
@@ -158,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ],
         });
         
-        console.log('Sending request to OpenRouter with model:', model || 'nvidia/nemotron-3-nano-30b-a3b:free');
+        console.log('Sending request to OpenRouter with model:', model || 'arcee-ai/trinity-large-preview:free');
         console.log('Request payload length:', postData.length);
 
         const options = {
