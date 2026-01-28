@@ -20,8 +20,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return errorResponse(res, 400, 'Messages are required and must be an array.');
         }
 
-        const apiKey = process.env.OPENROUTER_KEY || process.env.OPENROUTER_API_KEY;
-        
+        const apiKey = process.env.OPENROUTER_KEY;
+    
         if (!apiKey) {
             console.error('CRITICAL: No OpenRouter API Key found in environment variables');
             return errorResponse(res, 401, 'OpenRouter API key is not configured.');
