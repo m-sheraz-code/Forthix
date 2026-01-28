@@ -9,7 +9,7 @@ interface Message {
   content: string;
 }
 
-const MODEL = "allenai/molmo-2-8b:free";
+const MODEL = "arcee-ai/trinity-large-preview:free";
 
 export default function StockChatbotFAB() {
   const [isOpen, setIsOpen] = useState(false);
