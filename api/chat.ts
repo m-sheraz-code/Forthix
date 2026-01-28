@@ -148,7 +148,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `;
 
         const postData = JSON.stringify({
-            model: model || 'z-ai/glm-4.5-air:free',
+            model: model || 'google/gemini-2.0-flash-lite-preview-02-05:free',
             messages: [
                 {
                     role: 'system',
@@ -158,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ],
         });
         
-        console.log('Sending request to OpenRouter with model:', model || 'z-ai/glm-4.5-air:free');
+        console.log('Sending request to OpenRouter with model:', model || 'google/gemini-2.0-flash-lite-preview-02-05:free');
         console.log('Request payload length:', postData.length);
 
         const options = {
@@ -228,7 +228,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             message: error.message,
             cause: error.cause ? error.cause.message : undefined,
             code: error.code,
-            diagnosis: 'Network request failed. Check if Vercel has outgoing access to api.openrouter.ai and if the API key is correct.'
+            diagnosis: 'Network request failed. Check if Vercel has outgoing access to api.openrouter.ai and if the API key is correct. Note: Some "free" models (like z-ai/glm-4.5) may block Vercel IPs. Try using "google/gemini-2.0-flash-lite-preview-02-05:free".'
         });
     }
 }
