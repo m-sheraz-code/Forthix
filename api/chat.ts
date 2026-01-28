@@ -23,10 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const apiKey = process.env.OPENROUTER_KEY || process.env.OPENROUTER_API_KEY;
         
         if (!apiKey) {
+            console.error('CRITICAL: No OpenRouter API Key found in environment variables');
             return errorResponse(res, 401, 'OpenRouter API key is not configured.');
         }
 
-        console.log('Using API Key:', apiKey.substring(0, 5) + '...');
+        console.log('Using API Key:', apiKey.substring(0, 8) + '...');
 
         // --- STOCK DATA INJECTION ---
         let contextData = "";
@@ -156,6 +157,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 ...messages,
             ],
         });
+        
+        console.log('Sending request to OpenRouter with model:', model || 'z-ai/glm-4.5-air:free');
+        console.log('Request payload length:', postData.length);
 
         const options = {
             hostname: 'openrouter.ai',
@@ -199,13 +203,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (responseData.statusCode < 200 || responseData.statusCode >= 300) {
             console.error('OpenRouter Error Status:', responseData.statusCode);
-            console.error('OpenRouter Error Body:', responseData.body);
+            console.error('OpenRouter Error Response Body:', responseData.body);
             
             try {
                 const errorJson = JSON.parse(responseData.body);
-                return errorResponse(res, responseData.statusCode, errorJson.error?.message || 'Error from OpenRouter');
+                // Pass through the exact error message from OpenRouter if possible
+                const errorMessage = errorJson.error?.message || 'Error from OpenRouter';
+                console.error('Parsed OpenRouter Error Message:', errorMessage);
+                return errorResponse(res, responseData.statusCode, errorMessage);
             } catch (p) {
-                return errorResponse(res, responseData.statusCode, `Raw Error: ${responseData.body.substring(0, 100)}`);
+                console.error('Failed to parse error body JSON');
+                return errorResponse(res, responseData.statusCode, `Raw Error: ${responseData.body.substring(0, 200)}`);
             }
         }
 
