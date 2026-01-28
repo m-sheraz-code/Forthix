@@ -147,7 +147,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `;
 
         const postData = JSON.stringify({
-            model: model || 'tngtech/deepseek-r1t2-chimera:free',
+            model: model || 'z-ai/glm-4.5-air:free',
             messages: [
                 {
                     role: 'system',
