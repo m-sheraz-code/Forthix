@@ -168,7 +168,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://forthix-chatbot.vercel.app',
+                'HTTP-Referer': 'https://forthix.vercel.app/',
                 'X-Title': 'Forthix Chatbot',
                 'Content-Length': Buffer.byteLength(postData)
             },
