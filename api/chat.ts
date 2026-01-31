@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const { messages, model } = req.body;
-
+        
         if (!messages || !Array.isArray(messages)) {
             return errorResponse(res, 400, 'Messages are required and must be an array.');
         }
