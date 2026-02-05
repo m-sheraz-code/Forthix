@@ -75,7 +75,7 @@ async function handleSymbolChart(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
             symbol: symbolStr,
             range: rangeStr,
-            data: chartData,
+            data: chartData.map(d => ({ ...d, value: d.close })),
             stats: {
                 high: Number(high.toFixed(2)),
                 low: Number(low.toFixed(2)),

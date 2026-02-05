@@ -112,13 +112,15 @@ export default function PriceChart({ data, isPositive, chartType = 'area', timeR
   // Prep data for Recharts range bars
   const chartData = data.map(d => {
     const o = d.open ?? d.value;
-    const c = d.close ?? d.value;
+    const c = d.close ?? d.value ?? o;
+    const v = d.value ?? c;
     const h = d.high ?? Math.max(o, c);
     const l = d.low ?? Math.min(o, c);
     const isUp = c >= o;
 
     return {
       ...d,
+      value: v,
       candleBody: [Math.min(o, c), Math.max(o, c)],
       candleWick: [l, h],
       color: isUp ? '#22c55e' : '#ef4444'

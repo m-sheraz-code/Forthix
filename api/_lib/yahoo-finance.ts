@@ -126,6 +126,7 @@ export interface QuoteData {
 
 export interface ChartDataPoint {
     time: string;
+    value: number;
     open: number;
     high: number;
     low: number;
@@ -170,15 +171,15 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
                     // Fallback to chart API
                     const result = await rawFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`);
                     const meta = result?.chart?.result?.[0]?.meta;
-                    
+
                     // Fallback to indicators if meta price is 0 (common Yahoo bug)
                     let lastClose = meta?.regularMarketPrice;
                     const indicators = result?.chart?.result?.[0]?.indicators?.quote?.[0];
                     if ((!lastClose || lastClose === 0) && indicators?.close) {
-                         const closes = indicators.close.filter((c: number) => c !== null);
-                         if (closes.length > 0) {
-                             lastClose = closes[closes.length - 1];
-                         }
+                        const closes = indicators.close.filter((c: number) => c !== null);
+                        if (closes.length > 0) {
+                            lastClose = closes[closes.length - 1];
+                        }
                     }
 
                     if (meta) {
@@ -191,20 +192,20 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
                             symbol: meta.symbol,
                             exchangeName: meta.exchangeName
                         };
-                         // Re-calculate change if we used a candle close
-                         if (lastClose !== meta.regularMarketPrice && meta.chartPreviousClose) {
-                             quote.regularMarketChange = lastClose - meta.chartPreviousClose;
-                             quote.regularMarketChangePercent = ((lastClose - meta.chartPreviousClose) / meta.chartPreviousClose) * 100;
-                         }
+                        // Re-calculate change if we used a candle close
+                        if (lastClose !== meta.regularMarketPrice && meta.chartPreviousClose) {
+                            quote.regularMarketChange = lastClose - meta.chartPreviousClose;
+                            quote.regularMarketChangePercent = ((lastClose - meta.chartPreviousClose) / meta.chartPreviousClose) * 100;
+                        }
 
-                         // Calculate High/Low from indicators if meta is 0
-                         const highs = indicators.high.filter((v: number) => v !== null);
-                         const lows = indicators.low.filter((v: number) => v !== null);
-                         const calcHigh = highs.length ? Math.max(...highs) : 0;
-                         const calcLow = lows.length ? Math.min(...lows) : 0;
-                         
-                         if (!quote.regularMarketDayHigh && calcHigh > 0) quote.regularMarketDayHigh = calcHigh;
-                         if (!quote.regularMarketDayLow && calcLow > 0) quote.regularMarketDayLow = calcLow;
+                        // Calculate High/Low from indicators if meta is 0
+                        const highs = indicators.high.filter((v: number) => v !== null);
+                        const lows = indicators.low.filter((v: number) => v !== null);
+                        const calcHigh = highs.length ? Math.max(...highs) : 0;
+                        const calcLow = lows.length ? Math.min(...lows) : 0;
+
+                        if (!quote.regularMarketDayHigh && calcHigh > 0) quote.regularMarketDayHigh = calcHigh;
+                        if (!quote.regularMarketDayLow && calcLow > 0) quote.regularMarketDayLow = calcLow;
 
                     } else {
                         throw new Error('No meta in chart response');
@@ -395,6 +396,7 @@ export async function getChartData(
                 .filter((q: any) => q.close !== null)
                 .map((q: any) => ({
                     time: q.date.toISOString(),
+                    value: q.close || 0,
                     open: q.open || 0,
                     high: q.high || 0,
                     low: q.low || 0,
@@ -616,17 +618,21 @@ export async function getMarketMovers(): Promise<{
  */
 function getStartDate(range: string): Date {
     const now = new Date();
+    const normalizedRange = range.toLowerCase();
 
-    switch (range) {
+    switch (normalizedRange) {
         case '1d':
             return new Date(now.getTime() - 24 * 60 * 60 * 1000);
         case '5d':
             return new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
         case '1m':
+        case '1mo':
             return new Date(now.setMonth(now.getMonth() - 1));
         case '3m':
+        case '3mo':
             return new Date(now.setMonth(now.getMonth() - 3));
         case '6m':
+        case '6mo':
             return new Date(now.setMonth(now.getMonth() - 6));
         case 'ytd':
             return new Date(now.getFullYear(), 0, 1);
