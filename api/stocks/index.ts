@@ -50,6 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             marketCap: quote.marketCap,
             chartData: chartData.map((d) => ({
                 time: d.time,
+                value: d.close,
                 open: d.open,
                 high: d.high,
                 low: d.low,
