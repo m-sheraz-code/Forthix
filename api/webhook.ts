@@ -15,7 +15,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return errorResponse(res, 405, 'Method not allowed. Use POST.');
     }
-
     try {
         const {
             type,
@@ -24,6 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             symbol,
             category,
             image_base64,
+            image_url,
             image_filename,
             api_key,
         } = req.body;
@@ -51,11 +51,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         let imageUrl: string | null = null;
+        let imageBuffer: Buffer | null = null;
+        let detectedExtension: string | null = null;
 
-        // Handle image upload if provided
-        if (image_base64 && typeof image_base64 === 'string') {
+        // Handle image from URL or base64
+        if (image_url && typeof image_url === 'string') {
             try {
-                imageUrl = await uploadImageToStorage(adminClient, image_base64, image_filename, type);
+                const response = await fetch(image_url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const arrayBuffer = await response.arrayBuffer();
+                imageBuffer = Buffer.from(arrayBuffer);
+
+                // Try to get extension from content-type or URL
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.startsWith('image/')) {
+                    detectedExtension = contentType.split('/')[1];
+                    if (detectedExtension === 'jpeg') detectedExtension = 'jpg';
+                } else {
+                    const urlParts = image_url.split('.');
+                    if (urlParts.length > 1) {
+                        detectedExtension = urlParts.pop()!.split(/[?#]/)[0].toLowerCase();
+                    }
+                }
+            } catch (fetchError: any) {
+                console.error('Image download error:', fetchError);
+                return errorResponse(res, 500, `Image download failed: ${fetchError.message}`);
+            }
+        } else if (image_base64 && typeof image_base64 === 'string') {
+            // Detect extension from base64
+            if (image_base64.startsWith('data:image/')) {
+                const match = image_base64.match(/^data:image\/(\w+);/);
+                if (match) {
+                    detectedExtension = match[1] === 'jpeg' ? 'jpg' : match[1];
+                }
+            }
+
+            // Clean and convert to buffer
+            const base64Clean = image_base64.replace(/^data:image\/\w+;base64,/, '');
+            imageBuffer = Buffer.from(base64Clean, 'base64');
+        }
+
+        // Upload image if we have a buffer
+        if (imageBuffer) {
+            try {
+                const finalExtension = getFileExtension(image_filename, detectedExtension);
+                imageUrl = await uploadImageToStorage(adminClient, imageBuffer, image_filename, type, finalExtension);
             } catch (uploadError: any) {
                 console.error('Image upload error:', uploadError);
                 return errorResponse(res, 500, `Image upload failed: ${uploadError.message}`);
@@ -89,26 +130,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
  */
 async function uploadImageToStorage(
     supabase: any,
-    base64Data: string,
+    imageBuffer: Buffer,
     filename: string | undefined,
-    type: string
+    type: string,
+    extension: string
 ): Promise<string> {
-    // Remove data URI prefix if present (e.g., "data:image/jpeg;base64,")
-    const base64Clean = base64Data.replace(/^data:image\/\w+;base64,/, '');
-
-    // Decode base64 to buffer
-    const buffer = Buffer.from(base64Clean, 'base64');
-
     // Generate unique filename
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 8);
-    const extension = getFileExtension(filename, base64Data);
     const storagePath = `${type}/${timestamp}-${randomId}.${extension}`;
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
         .from('images')
-        .upload(storagePath, buffer, {
+        .upload(storagePath, imageBuffer, {
             contentType: getContentType(extension),
             cacheControl: '31536000', // 1 year cache
             upsert: false,
@@ -129,7 +164,7 @@ async function uploadImageToStorage(
 /**
  * Get file extension from filename or detect from base64 data
  */
-function getFileExtension(filename: string | undefined, base64Data: string): string {
+function getFileExtension(filename: string | undefined, detectedExtension: string | null): string {
     if (filename) {
         const parts = filename.split('.');
         if (parts.length > 1) {
@@ -137,15 +172,7 @@ function getFileExtension(filename: string | undefined, base64Data: string): str
         }
     }
 
-    // Try to detect from data URI
-    if (base64Data.startsWith('data:image/')) {
-        const match = base64Data.match(/^data:image\/(\w+);/);
-        if (match) {
-            return match[1] === 'jpeg' ? 'jpg' : match[1];
-        }
-    }
-
-    return 'jpg'; // Default to jpg
+    return detectedExtension || 'jpg'; // Default to detected or jpg
 }
 
 /**
