@@ -22,9 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             content,
             symbol,
             category,
-            image_base64,
             image_url,
-            image_filename,
             api_key,
         } = req.body;
 
@@ -54,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         let imageBuffer: Buffer | null = null;
         let detectedExtension: string | null = null;
 
-        // Handle image from URL or base64
+        // Handle image from URL
         if (image_url && typeof image_url === 'string') {
             try {
                 const response = await fetch(image_url);
@@ -78,25 +76,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 console.error('Image download error:', fetchError);
                 return errorResponse(res, 500, `Image download failed: ${fetchError.message}`);
             }
-        } else if (image_base64 && typeof image_base64 === 'string') {
-            // Detect extension from base64
-            if (image_base64.startsWith('data:image/')) {
-                const match = image_base64.match(/^data:image\/(\w+);/);
-                if (match) {
-                    detectedExtension = match[1] === 'jpeg' ? 'jpg' : match[1];
-                }
-            }
-
-            // Clean and convert to buffer
-            const base64Clean = image_base64.replace(/^data:image\/\w+;base64,/, '');
-            imageBuffer = Buffer.from(base64Clean, 'base64');
         }
 
         // Upload image if we have a buffer
         if (imageBuffer) {
             try {
-                const finalExtension = getFileExtension(image_filename, detectedExtension);
-                imageUrl = await uploadImageToStorage(adminClient, imageBuffer, image_filename, type, finalExtension);
+                const finalExtension = detectedExtension || 'jpg';
+                imageUrl = await uploadImageToStorage(adminClient, imageBuffer, type, finalExtension);
             } catch (uploadError: any) {
                 console.error('Image upload error:', uploadError);
                 return errorResponse(res, 500, `Image upload failed: ${uploadError.message}`);
@@ -131,7 +117,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function uploadImageToStorage(
     supabase: any,
     imageBuffer: Buffer,
-    filename: string | undefined,
     type: string,
     extension: string
 ): Promise<string> {
@@ -159,20 +144,6 @@ async function uploadImageToStorage(
         .getPublicUrl(storagePath);
 
     return publicUrlData.publicUrl;
-}
-
-/**
- * Get file extension from filename or detect from base64 data
- */
-function getFileExtension(filename: string | undefined, detectedExtension: string | null): string {
-    if (filename) {
-        const parts = filename.split('.');
-        if (parts.length > 1) {
-            return parts.pop()!.toLowerCase();
-        }
-    }
-
-    return detectedExtension || 'jpg'; // Default to detected or jpg
 }
 
 /**
