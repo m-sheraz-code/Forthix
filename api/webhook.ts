@@ -84,7 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const finalExtension = detectedExtension || 'jpg';
                 imageUrl = await uploadImageToStorage(adminClient, imageBuffer, type, finalExtension);
             } catch (uploadError: any) {
-                console.error('Image upload error:', uploadError);
+                console.error('Image upload error details:', uploadError);
                 return errorResponse(res, 500, `Image upload failed: ${uploadError.message}`);
             }
         }
