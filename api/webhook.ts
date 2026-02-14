@@ -22,7 +22,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             title,
             content,
             symbol,
-            category,
             image_url,
             api_key,
         } = req.body;
@@ -96,7 +95,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 title: title.trim(),
                 content: content || null,
                 image_url: imageUrl,
-                category: category || 'BREAKING',
             });
         } else {
             return await createIdea(adminClient, res, {
@@ -168,7 +166,7 @@ function getContentType(extension: string): string {
 async function createNews(
     supabase: any,
     res: VercelResponse,
-    data: { title: string; content: string | null; image_url: string | null; category: string }
+    data: { title: string; content: string | null; image_url: string | null }
 ) {
     const { data: news, error } = await supabase
         .from('news')
@@ -176,7 +174,6 @@ async function createNews(
             title: data.title,
             content: data.content,
             image_url: data.image_url,
-            category: data.category,
             created_at: new Date().toISOString(),
         })
         .select()
@@ -195,7 +192,6 @@ async function createNews(
             title: news.title,
             content: news.content,
             image_url: news.image_url,
-            category: news.category,
             created_at: news.created_at,
         },
     });
