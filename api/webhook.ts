@@ -93,13 +93,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (type === 'news') {
             return await createNews(adminClient, res, {
                 title: title.trim(),
-                content: content || null,
+                content: processContent(content),
                 image_url: imageUrl,
             });
         } else {
             return await createIdea(adminClient, res, {
                 title: title.trim(),
-                content: content || null,
+                content: processContent(content),
                 image_url: imageUrl,
                 symbol: symbol ? symbol.toUpperCase() : null,
             });
@@ -108,6 +108,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error('Webhook error:', error);
         return errorResponse(res, 500, 'Internal server error');
     }
+}
+
+/**
+ * Clean up content from n8n:
+ * 1. Remove redundant Market Context footer and hashtags
+ * 2. Convert basic HTML to readable plain text for whitespace-pre-wrap
+ */
+function processContent(content: string | null | undefined): string | null {
+    if (!content || typeof content !== 'string') return null;
+
+    // 1. Remove the redundant footer (Market Context and hashtags)
+    const footerMarkers = [
+        /Market Context\n/i,
+        /Stay updated with real-time market movements/i,
+        /#Market/i
+    ];
+
+    let processed = content;
+    for (const marker of footerMarkers) {
+        const match = processed.search(marker);
+        if (match !== -1) {
+            processed = processed.substring(0, match);
+            break;
+        }
+    }
+
+    // 2. Format HTML tags for plain-text readability
+    processed = processed
+        .replace(/<h[1-6]>(.*?)<\/h[1-6]>/gi, '\n\n$1\n\n')
+        .replace(/<p>(.*?)<\/p>/gi, '\n$1\n')
+        .replace(/<li>(.*?)<\/li>/gi, '\n• $1')
+        .replace(/<ul>|<\/ul>|<ol>|<\/ol>/gi, '\n')
+        .replace(/<strong>(.*?)<\/strong>/gi, '$1')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\n\s*\n\s*\n/g, '\n\n') // Collapse excessive newlines
+        .trim();
+
+    return processed;
 }
 
 /**
