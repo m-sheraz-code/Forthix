@@ -15,6 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return errorResponse(res, 405, 'Method not allowed. Use POST.');
     }
+
     try {
         const {
             type,
