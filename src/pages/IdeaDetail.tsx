@@ -73,38 +73,39 @@ export default function IdeaDetail() {
             </div>
 
             <div className="mx-auto max-w-7xl px-4 py-12">
-                {/* Hero Banner Style Design */}
+                {/* Title and Metadata - Always visible above image if present */}
+                <div className="mb-8 border-b border-white/5 pb-8">
+                    {idea.symbol && (
+                        <div className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-blue-500 px-3 py-1 text-xs font-bold text-white uppercase tracking-wider">
+                            <TrendingUp className="h-3 w-3" />
+                            {idea.symbol}
+                        </div>
+                    )}
+                    <h1 className="mb-6 text-3xl font-bold text-white md:text-5xl lg:text-6xl max-w-4xl leading-tight">
+                        {idea.title}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-gray-300">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/20 shadow-lg backdrop-blur-md">
+                                {idea.author[0].toUpperCase()}
+                            </div>
+                            <span className="font-bold text-white text-base">{idea.author}</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
+                            <Calendar className="h-4 w-4 text-blue-400" />
+                            <span className="font-medium">{new Date(idea.created_at || idea.time).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Hero Banner Style Design - Image Only */}
                 {idea.image && (
                     <div className="mb-12 overflow-hidden rounded-3xl border border-white/5 shadow-2xl relative">
-                        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 to-transparent z-10" />
                         <img
                             src={idea.image}
                             alt={idea.title}
-                            className="h-[500px] w-full object-cover"
+                            className="h-[300px] md:h-[500px] w-full object-cover"
                         />
-                        <div className="absolute bottom-0 left-0 right-0 p-8 z-20">
-                            {idea.symbol && (
-                                <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-blue-500 px-3 py-1 text-xs font-bold text-white uppercase tracking-wider">
-                                    <TrendingUp className="h-3 w-3" />
-                                    {idea.symbol}
-                                </div>
-                            )}
-                            <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl lg:text-6xl max-w-4xl leading-tight">
-                                {idea.title}
-                            </h1>
-                            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-300">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/20 shadow-lg backdrop-blur-md">
-                                        {idea.author[0].toUpperCase()}
-                                    </div>
-                                    <span className="font-bold text-white text-base">{idea.author}</span>
-                                </div>
-                                <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
-                                    <Calendar className="h-4 w-4 text-blue-400" />
-                                    <span className="font-medium">{new Date(idea.created_at || idea.time).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
 
@@ -112,16 +113,6 @@ export default function IdeaDetail() {
                     <div className="space-y-12">
                         {/* Content */}
                         <div className="prose prose-invert max-w-none text-xl text-gray-300 leading-relaxed font-normal">
-                            {!idea.image && (
-                                <div className="mb-8 border-b border-white/5 pb-8">
-                                    <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl">{idea.title}</h1>
-                                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                                        <span className="font-bold text-blue-400">{idea.author}</span>
-                                        <span>•</span>
-                                        <span>{new Date(idea.created_at || idea.time).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                                    </div>
-                                </div>
-                            )}
                             {idea.content ? (
                                 idea.content.split('\n').map((line, i) => (
                                     <p key={i} className="mb-8">{line}</p>
