@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Loader2, TrendingUp } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, TrendingUp, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getChatResponse } from "../lib/api";
@@ -11,18 +11,26 @@ interface Message {
 
 const MODEL = "arcee-ai/trinity-large-preview:free";
 
+const SUGGESTION_CHIPS = [
+  { label: "📈 What stocks should I buy?", query: "What stocks should I buy right now? Include some small-cap hidden gems." },
+  { label: "📊 Market outlook today", query: "What is the market outlook today? Any sectors looking strong?" },
+  { label: "🔍 Analyze $NVDA", query: "Analyze $NVDA for me. Price outlook and risk assessment." },
+  { label: "💎 Hidden gem small-caps", query: "What are some promising small-cap stocks that are under the radar right now?" },
+];
+
 export default function StockChatbotFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content:
-        "Hello! I am your Stock Market assistant. How can I help you today?",
+        "Hello! I am your Stock Market assistant. Ask me anything — from blue-chip analysis to hidden small-cap gems. How can I help you today?",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showChips, setShowChips] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -33,10 +41,11 @@ export default function StockChatbotFAB() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input };
+    setShowChips(false);
+    const userMessage: Message = { role: "user", content: text };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -67,6 +76,10 @@ export default function StockChatbotFAB() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async () => {
+    sendMessage(input);
   };
 
   return (
@@ -127,6 +140,24 @@ export default function StockChatbotFAB() {
                 </div>
               </div>
             ))}
+            {/* Suggestion Chips */}
+            {showChips && !isLoading && (
+              <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-3 duration-500">
+                <div className="w-full flex items-center gap-1.5 mb-1">
+                  <Sparkles className="w-3 h-3 text-brand-primary" />
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Try asking</span>
+                </div>
+                {SUGGESTION_CHIPS.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => sendMessage(chip.query)}
+                    className="text-xs px-3 py-2 rounded-2xl border border-white/10 bg-white/5 text-gray-300 hover:bg-brand-primary/20 hover:border-brand-primary/30 hover:text-white transition-all duration-200 active:scale-95"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
             {isLoading && (
               <div className="flex justify-start animate-fade-in duration-300">
                 <div className="bg-white/5 border border-white/10 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
