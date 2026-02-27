@@ -37,7 +37,7 @@ export default function LandingPage() {
       const [marketResult, ideasResult, newsResult] = await Promise.all([
         getMarketSummary(),
         getIdeas('editors'),
-        getNews('latest')
+        getNews('latest', 6)
       ]);
 
       if (marketResult.data) {

@@ -78,6 +78,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
+        // If image_url was provided, image download MUST succeed — otherwise skip blog creation
+        if (image_url && typeof image_url === 'string') {
+            if (!imageBuffer || imageBuffer.length === 0) {
+                console.error('Image download produced empty buffer for URL:', image_url);
+                return errorResponse(res, 400, 'Image download failed: received empty image data. Blog not published.');
+            }
+
+            if (!detectedExtension) {
+                console.error('Could not detect image extension for URL:', image_url);
+                return errorResponse(res, 400, 'Image download failed: could not detect image format. Blog not published.');
+            }
+        }
+
         // Upload image if we have a buffer
         if (imageBuffer) {
             try {
@@ -85,7 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 imageUrl = await uploadImageToStorage(adminClient, imageBuffer, type, finalExtension);
             } catch (uploadError: any) {
                 console.error('Image upload error details:', uploadError);
-                return errorResponse(res, 500, `Image upload failed: ${uploadError.message}`);
+                return errorResponse(res, 500, `Image upload failed: ${uploadError.message}. Blog not published.`);
             }
         }
 

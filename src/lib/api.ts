@@ -232,8 +232,10 @@ export async function saveChart(symbol: string, name?: string, config?: Record<s
 // NEWS API
 // ============================================
 
-export async function getNews(filter = 'latest') {
-    return apiFetch<{ news: any[]; filter: string }>(`/news?filter=${filter}`);
+export async function getNews(filter = 'latest', limit?: number) {
+    const query = new URLSearchParams({ filter });
+    if (limit) query.append('limit', limit.toString());
+    return apiFetch<{ news: any[]; filter: string }>(`/news?${query.toString()}`);
 }
 // ============================================
 // CHAT API

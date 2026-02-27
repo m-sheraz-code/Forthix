@@ -18,7 +18,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 async function handleGet(req: VercelRequest, res: VercelResponse) {
   try {
-    const { filter = 'latest' } = req.query;
+    const { filter = 'latest', limit = '20' } = req.query;
+    const fetchLimit = parseInt(String(limit), 10) || 20;
 
     // 1. Fetch from Yahoo Finance
     const yahooNews = await getMarketNews(filter === 'latest' ? 'market news' : String(filter));
@@ -28,7 +29,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       .from('news')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(fetchLimit);
 
     if (supabaseError) {
       console.error('Supabase news fetch error:', supabaseError);

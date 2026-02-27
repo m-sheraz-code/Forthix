@@ -20,7 +20,7 @@ export default function NewsPage() {
   useEffect(() => {
     async function loadNews() {
       setIsLoading(true);
-      const { data } = await getNews(filter);
+      const { data } = await getNews(filter, 100);
       if (data) {
         setNews(data.news);
       }
